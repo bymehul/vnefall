@@ -4,6 +4,7 @@ import "core:fmt"
 import "core:os"
 import "core:strings"
 import "core:strconv"
+import "sthiti"
 
 Command_Type :: enum {
     None,
@@ -14,11 +15,14 @@ Command_Type :: enum {
     Music,
     Title,
     Label,
+    Character,
     Jump,
     JumpFile,   // jump_file "chapter_2.vnef" (load new script)
     Choice,
     ChoiceAdd,
     ChoiceShow,
+    Save,
+    Load,
     Set,
     If,
     Else,
@@ -37,28 +41,31 @@ Command :: struct {
     indented: bool, // True if the line had leading whitespace
 }
 
+Value :: union {
+    int,
+    string,
+}
+
 Script :: struct {
     commands:  [dynamic]Command,
     labels:    map[string]int,
-    variables: map[string]int, // 0/1 for bools, any value for ints
+    variables: map[string]Value,
+    path:      string, // Path to this script file
+    bg_path:   string, // Current background path for persistence
     ip:        int,
     waiting:   bool,
 }
 
 script_load :: proc(s: ^Script, path: string) -> bool {
     // Clear any existing data first (for reload case)
-    clear(&s.labels)
-    clear(&s.variables)
-    clear(&s.commands)
+    script_cleanup(s)
     
     // Initialize maps if they don't exist yet
-    if s.labels == nil {
-        s.labels = make(map[string]int)
-    }
-    if s.variables == nil {
-        s.variables = make(map[string]int)
-    }
+    if s.labels == nil    do s.labels = make(map[string]int)
+    if s.variables == nil do s.variables = make(map[string]Value)
+    if s.commands == nil  do s.commands = make([dynamic]Command)
     
+    s.path = strings.clone(path)
     s.ip = 0
     s.waiting = false
     
@@ -183,7 +190,8 @@ parse_line :: proc(line: string) -> (cmd: Command) {
     // bg / images
     if strings.has_prefix(line, "bg ") {
         cmd.type = .Bg
-        cmd.who  = strings.clone(strings.trim_space(line[3:]))
+        rest := strings.trim_space(line[3:])
+        cmd.who = strings.clone(strings.trim(rest, "\""))
         return
     }
     
@@ -215,7 +223,8 @@ parse_line :: proc(line: string) -> (cmd: Command) {
     if strings.has_prefix(line, "music ") || strings.has_prefix(line, "play ") {
         off := strings.has_prefix(line, "music ") ? 6 : 5
         cmd.type = .Music
-        cmd.who  = strings.clone(strings.trim_space(line[off:]))
+        rest := strings.trim_space(line[off:])
+        cmd.who = strings.clone(strings.trim(rest, "\""))
         return
     }
     
@@ -273,7 +282,16 @@ parse_line :: proc(line: string) -> (cmd: Command) {
         return
     }
 
-    if line == "choice_show" do return Command{type = .ChoiceShow}
+    if strings.has_prefix(line, "choice_show") {
+        cmd.type = .ChoiceShow
+        rest := strings.trim_space(line[11:])
+        if len(rest) >= 2 && rest[0] == '"' && rest[len(rest)-1] == '"' {
+             cmd.who = strings.clone(rest[1:len(rest)-1])
+        } else {
+             cmd.who = strings.clone(rest)
+        }
+        return
+    }
 
     // set money = 100  OR  set flag true
     if strings.has_prefix(line, "set ") {
@@ -339,6 +357,43 @@ parse_line :: proc(line: string) -> (cmd: Command) {
         return
     }
     
+    // char Alice show happy at left
+    // char Alice hide
+    if strings.has_prefix(line, "char ") {
+        cmd.type = .Character
+        parts := strings.split(line, " ")
+        defer delete(parts)
+        if len(parts) >= 3 {
+            cmd.who = strings.clone(parts[1]) // Alice
+            cmd.what = strings.clone(parts[2]) // show/hide
+            
+            // For 'show happy at left', args would be ["happy", "left"]
+            start := 3
+            for i := start; i < len(parts); i += 1 {
+                if parts[i] == "at" do continue
+                cmd_arg := strings.trim_space(parts[i])
+                append(&cmd.args, strings.clone(strings.trim(cmd_arg, "\"")))
+            }
+        }
+        return
+    }
+    
+    // save "slot_1"
+    if strings.has_prefix(line, "save ") {
+        cmd.type = .Save
+        rest := strings.trim_space(line[5:])
+        cmd.who = strings.clone(strings.trim(rest, "\""))
+        return
+    }
+    
+    // load "slot_1"
+    if strings.has_prefix(line, "load ") {
+        cmd.type = .Load
+        rest := strings.trim_space(line[5:])
+        cmd.who = strings.clone(strings.trim(rest, "\""))
+        return
+    }
+
     if line == "wait" do return Command{type = .Wait}
     if line == "end"  do return Command{type = .End}
     
@@ -357,7 +412,18 @@ script_cleanup :: proc(s: ^Script) {
     }
     clear(&s.commands)  // Clear but keep the dynamic array
     clear(&s.labels)    // Clear but keep the map
+    if s.path != "" {
+        delete(s.path)
+        s.path = ""
+    }
+    if s.bg_path != "" {
+        delete(s.bg_path)
+        s.bg_path = ""
+    }
     // Keep variables across file jumps for persistent state
+    
+    // Flush character state (Dharana)
+    character_flush_all()
 }
 
 // Final cleanup that frees all memory (call on game exit)
@@ -365,6 +431,10 @@ script_destroy :: proc(s: ^Script) {
     script_cleanup(s)
     delete(s.commands)
     delete(s.labels)
+    for k, v in s.variables {
+        delete(k) // keys are cloned in 'set'
+        if str, ok := v.(string); ok do delete(str) // values are cloned strings
+    }
     delete(s.variables)
 }
 
@@ -378,12 +448,18 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
     
     #partial switch c.type {
     case .Bg:
+        if s.bg_path != "" do delete(s.bg_path)
+        s.bg_path = strings.clone(c.who)
+        
         tex := scene_get_texture(c.who)
         if tex != 0 do state.current_bg = tex
         s.ip += 1
         
     case .Music:
-        path := strings.concatenate({cfg.path_music, c.who})
+        ext := ".ogg"
+        if strings.contains(c.who, ".") do ext = ""
+        
+        path := strings.concatenate({cfg.path_music, c.who, ext})
         defer delete(path)
         audio_play_music(&state.audio, path)
         s.ip += 1
@@ -413,6 +489,11 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
         delete(target_file)
         fmt.printf("[script] Jumping to file: %s\n", path)
         
+        // Capture current BG name before cleanup
+        bg_name := ""
+        if s.bg_path != "" do bg_name = strings.clone(s.bg_path)
+        defer if bg_name != "" do delete(bg_name)
+        
         // Cleanup old script
         script_cleanup(s)
         
@@ -423,7 +504,12 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
             // No prefetch or wrong prefetch, sync load
             scene_system_cleanup() // Clear anything currently loaded
             g_scenes.current = scene_load_sync(path)
-            state.current_bg = 0
+            
+            if bg_name != "" {
+                state.current_bg = scene_get_texture(bg_name)
+            } else {
+                state.current_bg = 0
+            }
         }
         
         // Load new script
@@ -486,22 +572,20 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
         s.waiting = true
 
     case .Set:
-        val := 0
-        if c.what == "true"  do val = 1
-        else if c.what == "false" do val = 0
-        else {
-            // Check if it's a number
-            v, ok := strconv.parse_int(c.what)
-            if ok do val = v
-            else {
-                // Check if it's another variable
-                if other, exists := s.variables[c.what]; exists {
-                    val = other
-                }
-            }
+        // Before we set the new value, if the old value was a string, we MUST delete it.
+        if old, exists := s.variables[c.who]; exists {
+            // Already exists: update value, key pointer stays the same (owned)
+            if str, ok := old.(string); ok do delete(str)
+            s.variables[c.who] = evaluate_complex_expression(s, c.what)
+        } else {
+            // New variable: clone the key so its memory is owned by the map
+            s.variables[strings.clone(c.who)] = evaluate_complex_expression(s, c.what)
         }
-        fmt.printf("[script] Set variable: %s = %d\n", c.who, val)
-        s.variables[c.who] = val
+        
+        #partial switch v in s.variables[c.who] {
+        case int:    fmt.printf("[script] Set variable: %s = %d\n", c.who, v)
+        case string: fmt.printf("[script] Set variable: %s = \"%s\"\n", c.who, v)
+        }
         s.ip += 1
 
     case .If:
@@ -578,14 +662,218 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
     
     case .SceneNext:
         // Prefetch next scene in background
-        script_path := strings.concatenate({cfg.path_scripts, c.who, ".vnef"})
-        defer delete(script_path)
-        scene_prefetch(script_path)
+        if c.who == "none" {
+            scene_prefetch("none")
+        } else {
+            script_path := strings.concatenate({cfg.path_scripts, c.who, ".vnef"})
+            defer delete(script_path)
+            scene_prefetch(script_path)
+        }
         s.ip += 1
         
+    case .Character:
+        if c.what == "show" {
+             sprite := ""
+             pos    := "center"
+             z      := i32(0)
+             
+             if len(c.args) > 0 do sprite = c.args[0]
+             if len(c.args) > 1 do pos    = c.args[1]
+             
+             // Check for 'z' in arguments
+             for i := 0; i < len(c.args); i += 1 {
+                 if c.args[i] == "z" && i + 1 < len(c.args) {
+                     val, ok := strconv.parse_int(c.args[i+1])
+                     if ok do z = i32(val)
+                     break
+                 }
+             }
+             
+             character_show(c.who, sprite, pos, z)
+        } else if c.what == "hide" {
+             character_hide(c.who)
+        }
+        s.ip += 1
+
+    case .Save:
+        // Ensure saves directory exists
+        if !os.is_dir(cfg.path_saves) {
+            os.make_directory(cfg.path_saves)
+        }
+        
+        // Convert Script state to Sthiti state
+        save := sthiti.save_state_init()
+        defer sthiti.save_state_destroy(&save)
+        
+        save.script_path = strings.clone(s.path)
+        save.script_ip   = i32(s.ip) // Save EXACT current index (don't skip)
+        if s.bg_path != "" do save.bg_path = strings.clone(s.bg_path)
+        
+        // Save current textbox state
+        save.textbox_vis = state.textbox.visible
+        if state.textbox.speaker != "" do save.speaker = strings.clone(state.textbox.speaker)
+        if state.textbox.text != ""    do save.textbox_text = strings.clone(state.textbox.text)
+        
+        for k, v in s.variables {
+            #partial switch val in v {
+            case int:    save.variables[strings.clone(k)] = i32(val)
+            case string: save.variables[strings.clone(k)] = strings.clone(val)
+            }
+        }
+        
+        // Save character states (v4)
+        for _, char in g_characters {
+            if char.visible {
+                c_save: sthiti.Character_Save_State
+                c_save.name        = strings.clone(char.name)
+                c_save.sprite_path = strings.clone(char.sprite_path)
+                c_save.pos_name    = strings.clone(char.pos_name)
+                c_save.z           = char.z
+                append(&save.characters, c_save)
+            }
+        }
+        
+        
+        path := strings.concatenate({cfg.path_saves, c.who, ".sthiti"})
+        defer delete(path)
+        sthiti.save_to_file(path, save)
+        fmt.printf("[script] Game saved successfully to %s\n", path)
+        s.ip += 1
+
+    case .Load:
+        path := strings.concatenate({cfg.path_saves, c.who, ".sthiti"})
+        defer delete(path)
+        
+        save, ok := sthiti.load_from_file(path)
+        if ok {
+            defer sthiti.save_state_destroy(&save)
+            // Restore variables
+            for k, v in save.variables {
+                if old, exists := s.variables[k]; exists {
+                    if str, ok := old.(string); ok do delete(str)
+                    #partial switch val in v {
+                    case i32:    s.variables[k] = int(val)
+                    case string: s.variables[k] = strings.clone(val)
+                    }
+                } else {
+                    key_clone := strings.clone(k)
+                    #partial switch val in v {
+                    case i32:    s.variables[key_clone] = int(val)
+                    case string: s.variables[key_clone] = strings.clone(val)
+                    }
+                }
+            }
+            // If script file is different, we need to reload it
+            if save.script_path != "" && save.script_path != s.path {
+                fmt.printf("[script] Load jumping to file: %s\n", save.script_path)
+                script_load(s, save.script_path)
+                
+                // Reload scene system for this script
+                scene_system_cleanup()
+                scene_init()
+                g_scenes.current = scene_load_sync(save.script_path)
+            }
+            
+            s.ip = int(save.script_ip)
+            
+            // Restore visual environment
+            if save.bg_path != "" {
+                if s.bg_path != "" do delete(s.bg_path)
+                s.bg_path = strings.clone(save.bg_path)
+                
+                tex := scene_get_texture(s.bg_path)
+                if tex != 0 do state.current_bg = tex
+            }
+            
+            // Restore textbox state
+            state.textbox.visible = save.textbox_vis
+            if state.textbox.speaker != "" do delete(state.textbox.speaker)
+            state.textbox.speaker = strings.clone(save.speaker)
+            
+            if state.textbox.text != "" do delete(state.textbox.text)
+            state.textbox.text = strings.clone(save.textbox_text)
+            
+            // Restore character positions (v4)
+            character_flush_all()
+            for c in save.characters {
+                character_show(c.name, c.sprite_path, c.pos_name, c.z)
+            }
+            
+            // If we loaded onto a 'waiting' command (like say), we should be waiting
+            // This prevents the next execute frame from immediately skipping it
+            if s.ip < len(s.commands) {
+                cmd := s.commands[s.ip]
+                if cmd.type == .Say || cmd.type == .ChoiceShow {
+                    s.waiting = true
+                }
+            }
+            
+            fmt.printf("[script] Game loaded from %s\n", path)
+        } else {
+            fmt.eprintln("[script] Failed to load save:", path)
+            s.ip += 1
+        }
+
     case .End:
         state.running = false
     }
+}
+
+evaluate_complex_expression :: proc(s: ^Script, expr: string) -> Value {
+    trimmed := strings.trim_space(expr)
+    
+    // String literal
+    if len(trimmed) >= 2 && trimmed[0] == '"' && trimmed[len(trimmed)-1] == '"' {
+        return strings.clone(trimmed[1:len(trimmed)-1])
+    }
+    
+    // Arithmetic: check for +, -, *, /
+    ops := []string{"+", "-", "*", "/"}
+    for op in ops {
+        if idx := strings.index(trimmed, op); idx != -1 {
+            lhs_s := strings.trim_space(trimmed[:idx])
+            rhs_s := strings.trim_space(trimmed[idx + 1:])
+            
+            lhs_v := evaluate_complex_expression(s, lhs_s)
+            rhs_v := evaluate_complex_expression(s, rhs_s)
+            
+            // Note: If either is a string, we can't do math (except maybe + for concat later)
+            lhs, ok_l := lhs_v.(int)
+            rhs, ok_r := rhs_v.(int)
+            
+            // Clean up temporary strings if they were produced (unlikely in math but safe)
+            if s_l, ok := lhs_v.(string); ok do delete(s_l)
+            if s_r, ok := rhs_v.(string); ok do delete(s_r)
+            
+            if ok_l && ok_r {
+                switch op {
+                case "+": return lhs + rhs
+                case "-": return lhs - rhs
+                case "*": return lhs * rhs
+                case "/": return rhs != 0 ? lhs / rhs : 0
+                }
+            }
+        }
+    }
+    
+    // Boolean literals
+    if trimmed == "true"  do return 1
+    if trimmed == "false" do return 0
+    
+    // Variable lookup
+    if val, ok := s.variables[trimmed]; ok {
+        #partial switch v in val {
+        case int:    return v
+        case string: return strings.clone(v)
+        }
+    }
+    
+    // Integer literal
+    if v, ok := strconv.parse_int(trimmed); ok {
+        return v
+    }
+    
+    return 0
 }
 
 choice_clear :: proc(state: ^Game_State) {
@@ -611,11 +899,6 @@ script_advance :: proc(s: ^Script, state: ^Game_State) {
 evaluate_expression :: proc(s: ^Script, expr: string) -> bool {
     trimmed := strings.trim_space(expr)
     
-    // Simple boolean check
-    if val, ok := s.variables[trimmed]; ok {
-        return val != 0
-    }
-    
     // Check for comparisons: ==, !=, >, <, >=, <=
     ops := []string{">=", "<=", "==", "!=", ">", "<"}
     for op in ops {
@@ -623,37 +906,49 @@ evaluate_expression :: proc(s: ^Script, expr: string) -> bool {
             lhs_s := strings.trim_space(trimmed[:idx])
             rhs_s := strings.trim_space(trimmed[idx + len(op):])
             
-            lhs := 0
-            rhs := 0
-            
-            // Resolve LHS
-            if v, ok := s.variables[lhs_s]; ok do lhs = v
-            else {
-                v, _ := strconv.parse_int(lhs_s)
-                lhs = v
+            lhs_v := evaluate_complex_expression(s, lhs_s)
+            rhs_v := evaluate_complex_expression(s, rhs_s)
+            defer {
+                if str, ok := lhs_v.(string); ok do delete(str)
+                if str, ok := rhs_v.(string); ok do delete(str)
             }
             
-            // Resolve RHS
-            if v, ok := s.variables[rhs_s]; ok do rhs = v
-            else {
-                v, _ := strconv.parse_int(rhs_s)
-                rhs = v
+            // String comparison
+            if l_s, ok1 := lhs_v.(string); ok1 {
+                if r_s, ok2 := rhs_v.(string); ok2 {
+                    if op == "==" do return l_s == r_s
+                    if op == "!=" do return l_s != r_s
+                    return false
+                }
             }
             
-            switch op {
-            case "==": return lhs == rhs
-            case "!=": return lhs != rhs
-            case ">":  return lhs > rhs
-            case "<":  return lhs < rhs
-            case ">=": return lhs >= rhs
-            case "<=": return lhs <= rhs
+            // Int comparison
+            if l_i, ok1 := lhs_v.(int); ok1 {
+                if r_i, ok2 := rhs_v.(int); ok2 {
+                    switch op {
+                    case "==": return l_i == r_i
+                    case "!=": return l_i != r_i
+                    case ">":  return l_i > r_i
+                    case "<":  return l_i < r_i
+                    case ">=": return l_i >= r_i
+                    case "<=": return l_i <= r_i
+                    }
+                }
             }
+            return false
         }
     }
     
-    // Fallback to literal number
-    v, _ := strconv.parse_int(trimmed)
-    return v != 0
+    // Fallback to literal number or bool variable
+    val := evaluate_complex_expression(s, trimmed)
+    defer if str, ok := val.(string); ok do delete(str)
+    
+    #partial switch v in val {
+    case int: return v != 0
+    case string: return len(v) > 0
+    }
+    
+    return false
 }
 
 interpolate_text :: proc(s: ^Script, input: string) -> string {
@@ -666,7 +961,10 @@ interpolate_text :: proc(s: ^Script, input: string) -> string {
             if end != -1 {
                 var_name := input[i+2 : i+end]
                 if val, ok := s.variables[var_name]; ok {
-                    fmt.sbprintf(&sb, "%d", val)
+                    #partial switch v in val {
+                    case int:    fmt.sbprintf(&sb, "%d", v)
+                    case string: strings.write_string(&sb, v)
+                    }
                 } else {
                     strings.write_string(&sb, input[i : i+end+1])
                 }

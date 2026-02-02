@@ -78,8 +78,8 @@ renderer_init :: proc(r: ^Renderer) -> bool {
     
     gl.BindVertexArray(r.vao)
     gl.BindBuffer(gl.ARRAY_BUFFER, r.vbo)
-    // Space for 6 vertices (each has 2 position + 2 UV floats)
-    gl.BufferData(gl.ARRAY_BUFFER, size_of(f32) * 4 * 6, nil, gl.DYNAMIC_DRAW)
+    // Allocate 512KB of headroom for the VBO (Sweet spot for mobile/mid-range)
+    gl.BufferData(gl.ARRAY_BUFFER, 512 * 1024, nil, gl.DYNAMIC_DRAW)
     
     gl.VertexAttribPointer(0, 2, gl.FLOAT, false, 4 * size_of(f32), 0)
     gl.EnableVertexAttribArray(0)

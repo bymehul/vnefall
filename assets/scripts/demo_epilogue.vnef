@@ -1,0 +1,17 @@
+title "Inkframe - Epilogue"
+
+scene "demo_epilogue"
+bg "apartment.png"
+
+char Emi show happy at center z 5
+say Emi "New file! See how the transition was zero-stutter?"
+say Emi "That's the `scene_next` prefetching at work."
+
+say Emi "I'll keep your name as ${player_name} forever."
+
+if (met_kaito) {
+    say Emi "Kaito says goodbye too."
+}
+
+say Emi "Inkframe v1.2.0: Stability & Presence. Complete."
+end

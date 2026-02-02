@@ -1,47 +1,80 @@
-# Vnefall - The Quiet Commute (Chapter 1)
-# A showcase of Vnefall v1.1.0 using high-quality assets
+title "Inkframe v1.2.0: Technical Demo"
 
-title "The Quiet Commute - Chapter 1"
-bg train.png
-music hope.mp3
+# --- Setup ---
+set player_name = "Zen"
+set health = 100
+set met_kaito = false
 
-say Narrator "The rhythmic clacking of the train against the tracks is the only sound in the carriage."
-say Narrator "Outside, the Japanese countryside blurs into a palette of green and blue."
+# --- The Start ---
+scene "demo_game"
+bg "room.png"
+music "hope.mp3"
+save "auto_start"
 
-say Alice "Another long day at the university..."
-say Alice "I hope I didn't forget my books in the library."
+char Emi show happy at center z 5
+say Emi "Welcome to the new Inkframe engine! My name is Emi."
+say Emi "You must be ${player_name}. I've heard a lot about your coding skills."
 
-set knows_alice = true
-set study_points = 10
-
-say Alice "Wait, is that someone I know sitting over there?"
-
-choice_add "Wave hello" wave_hello
-choice_add "Stay quiet and read" stay_quiet
+choice_add "Talk to Emi" talk_emi
+choice_add "Go to the Lounge" go_lounge
+choice_add "Save Progress" save_game
 choice_show
 
-label wave_hello:
-    say Alice "Hey! Over here!"
-    say Narrator "The person looks up and smiles. It's a friend from your math class."
-    set study_points = 15
-    jump continue_story
+label talk_emi:
+    char Emi show normal at center z 5
+    say Emi "I'm currently using the simplified sprite system."
+    say Emi "No more complex JSONs. Just put a PNG in my folder and call its name!"
+    
+    char Emi show happy at center z 5
+    say Emi "Plus, I automatically scale to fit the screen. Pretty cool, right?"
+    jump story_cont
 
-label stay_quiet:
-    say Narrator "You decide to keep your head down and focus on your textbook."
-    say Alice "Calculus won't study itself."
-    set study_points = 20
+label go_lounge:
+    bg "lounge.jpg"
+    char Emi show normal at left z 5
+    say Emi "The lounge is quiet today."
+    
+    set met_kaito = true
+    char Kaito show normal at right z 10
+    say Kaito "Quiet? It was, until you brought ${player_name} here."
+    
+    char Kaito show angry at right z 10
+    say Kaito "And why am I standing in front of Emi? Ah, the Z-index test."
+    say Kaito "My Z is 10, hers is 5. So I overlap her."
+    
+    char Kaito hide
+    say Emi "And now he's vanished! Every time we hide someone, the engine frees their memory."
+    jump story_cont
 
-label continue_story:
-    music frozen.mp3
-    bg apartment.png
-    say Narrator "Later that evening, you arrive at your apartment complex."
-    say Alice "Home at last. It's been a productive day."
+label save_game:
+    say Emi "Let's test the Sthiti-DB v2 persistence."
+    save "demo_quicksave"
+    say Emi "Your name (${player_name}) and state are now saved to disk!"
+    jump story_cont
+
+label story_cont:
+    bg "train.png"
+    scene_next "demo_epilogue"
     
-    say Alice "I have ${study_points} study points saved up."
+    char Emi show surprised at center z 5
+    say Emi "We're nearing the end of this module."
     
-    # Prefetch the next chapter
-    scene_next "demo_ch2"
+    if (met_kaito == true) {
+        say Emi "Since you met Kaito, I should warn you... he's a bit grumpy."
+    } else {
+        say Emi "Since you avoided the lounge, it's been a very peaceful day!"
+    }
     
-    say Alice "I should get some sleep. Tomorrow is a big day."
+    say Emi "Ready for the next script?"
     
-    jump_file "demo_ch2.vnef"
+    choice_add "Jump to Epilogue" do_jump
+    choice_add "Reload My Save" do_load
+    choice_show
+
+label do_jump:
+    jump_file "demo_epilogue.vnef"
+
+label do_load:
+    load "demo_quicksave"
+    say Emi "Error: Save not found!"
+    end

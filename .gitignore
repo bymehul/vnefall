@@ -21,7 +21,7 @@ database/
 
 # Demo Assets
 demo-assets/
-
+referencepose/
 # Auto-generated manifests
 *.manifest
 assets/manifests/*.manifest

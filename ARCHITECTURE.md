@@ -33,6 +33,8 @@ If you want to add a command like `shake_screen` or `show_character`:
 - **Text (`font.odin`)**: Uses `stb_truetype` to bake a font into a single atlas texture.
 - **Audio (`audio.odin`)**: A thin wrapper around `SDL_mixer`.
 - **Scene System (`scene.odin`, `manifest.odin`)**: Manages asset loading per-scene. Automatically generates manifests and supports background prefetching for zero-stutter transitions.
+- **Character System (`character.odin`)**: A singleton-style manager for sprites. Supports **Scale-to-Fit** (80% vertical height) and **Z-Order** sorted drawing.
+- **Persistence (`sthiti/`)**: Uses Sthiti-DB v4 for binary state serialization. Saves all global variables (integers and strings), current textbox text, active character states, script position, and environment.
 
 ## Graphics API Strategy
 We use **OpenGL 3.3** for its high compatibility and simplicity. While Apple has deprecated OpenGL, it remains the most portable "starter" API for 2D engines.
@@ -51,9 +53,8 @@ We use **OpenGL 3.3** for its high compatibility and simplicity. While Apple has
 - **Coordinate System**: We use top-left (0,0). If the screen looks flipped, check `ortho_matrix` in `renderer.odin`.
 
 ## Known Constraints
-- **VBO Size**: The current VBO is sized for a single quad (6 vertices). If you plan to draw many sprites at once, you'll need to update `renderer_init` to handle a larger buffer or implement batching.
+- **VBO Size**: The engine uses a **512KB Vertex Buffer**, providing a massive "sweet spot" headroom for mobile and mid-range devices. While we currently draw images one-by-one, this headroom allows for easy implementation of a Batching Renderer in the future.
 - **Script Buffer**: We read the entire `.vnef` file into memory. For massive stories, we might eventually need a streaming parser.
-- **In-Memory State**: Variables persist across `jump_file` calls for multi-chapter state. Full disk-based saving is planned for the Database system.
 
 ## Troubleshooting
 - **No Sound**: Ensure `SDL2_mixer` is installed and the file path starts with `assets/music/`.

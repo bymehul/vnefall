@@ -16,6 +16,8 @@ path_images    = "assets/images/"
 path_music     = "assets/music/"
 path_scripts   = "assets/scripts/"
 path_manifests = "assets/manifests/"
+path_characters = "assets/images/characters/"
+path_saves     = "saves/"
 entry_script   = "assets/scripts/demo_game.vnef"
 
 # Visual Styles (Textbox)

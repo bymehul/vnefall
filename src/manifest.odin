@@ -49,23 +49,59 @@ manifest_generate :: proc(script_path: string) -> (Manifest, bool) {
         // Parse asset commands
         if strings.has_prefix(trimmed, "bg ") {
             asset := strings.trim_space(trimmed[3:])
-            // Remove quotes if present
             asset = strings.trim(asset, "\"")
-            // Check if already added
-            if !contains_string(m.backgrounds[:], asset) {
-                append(&m.backgrounds, strings.clone(asset))
+            
+            ext := ".png"
+            if strings.contains(asset, ".") do ext = ""
+            asset_full := strings.concatenate({asset, ext})
+            defer delete(asset_full)
+
+            if !contains_string(m.backgrounds[:], asset_full) {
+                append(&m.backgrounds, strings.clone(asset_full))
             }
         } else if strings.has_prefix(trimmed, "sprite ") {
             asset := strings.trim_space(trimmed[7:])
             asset = strings.trim(asset, "\"")
-            if !contains_string(m.sprites[:], asset) {
-                append(&m.sprites, strings.clone(asset))
+            
+            ext := ".png"
+            if strings.contains(asset, ".") do ext = ""
+            asset_full := strings.concatenate({asset, ext})
+            defer delete(asset_full)
+
+            if !contains_string(m.sprites[:], asset_full) {
+                append(&m.sprites, strings.clone(asset_full))
+            }
+        } else if strings.has_prefix(trimmed, "char ") {
+            // char [Name] show [Sprite] at [Pos]
+            parts := strings.split(trimmed, " ")
+            defer delete(parts)
+            
+            if len(parts) >= 4 && parts[2] == "show" {
+                name := parts[1]
+                sprite := parts[3]
+                
+                ext := ".png"
+                if strings.contains(sprite, ".") do ext = ""
+                
+                // Construct path: characters/[Name]/[Sprite].png
+                asset := strings.concatenate({"characters/", name, "/", sprite, ext})
+                defer delete(asset)
+                
+                if !contains_string(m.sprites[:], asset) {
+                    append(&m.sprites, strings.clone(asset))
+                }
             }
         } else if strings.has_prefix(trimmed, "music ") {
             asset := strings.trim_space(trimmed[6:])
             asset = strings.trim(asset, "\"")
-            if !contains_string(m.music[:], asset) {
-                append(&m.music, strings.clone(asset))
+            
+            ext := ".ogg"
+            if strings.contains(asset, ".") do ext = ""
+            asset_full := strings.concatenate({asset, ext})
+            defer delete(asset_full)
+
+            if !contains_string(m.music[:], asset_full) {
+                append(&m.music, strings.clone(asset_full))
             }
         }
     }

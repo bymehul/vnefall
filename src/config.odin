@@ -28,6 +28,8 @@ Config :: struct {
     path_music:      string,
     path_scripts:    string,
     path_manifests:  string,
+    path_characters: string,
+    path_saves:      string,
     entry_script:    string,
     
     // Visual defaults
@@ -67,6 +69,8 @@ config_init_defaults :: proc() {
     cfg.path_music     = strings.clone("assets/music/")
     cfg.path_scripts   = strings.clone("assets/scripts/")
     cfg.path_manifests = strings.clone("assets/manifests/")
+    cfg.path_characters = strings.clone("assets/images/characters/")
+    cfg.path_saves     = strings.clone("saves/")
     cfg.entry_script   = strings.clone("assets/scripts/demo.vnef")
     
     cfg.color_speaker  = {1.0, 0.84, 0.0, 1.0} // Gold
@@ -151,6 +155,12 @@ config_load :: proc(path: string) -> bool {
         case "path_manifests":  
             delete(cfg.path_manifests)
             cfg.path_manifests = strings.clone(strings.trim(val, "\""))
+        case "path_characters":  
+            delete(cfg.path_characters)
+            cfg.path_characters = strings.clone(strings.trim(val, "\""))
+        case "path_saves":
+            delete(cfg.path_saves)
+            cfg.path_saves = strings.clone(strings.trim(val, "\""))
         case "entry_script":    
             delete(cfg.entry_script)
             cfg.entry_script  = strings.clone(strings.trim(val, "\""))
@@ -200,6 +210,8 @@ config_cleanup :: proc() {
     delete(cfg.path_music)
     delete(cfg.path_scripts)
     delete(cfg.path_manifests)
+    delete(cfg.path_characters)
+    delete(cfg.path_saves)
     delete(cfg.entry_script)
 }
 

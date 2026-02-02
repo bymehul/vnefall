@@ -14,6 +14,12 @@ scene_next "chapter_2"   # Start loading chapter_2 assets
 say Alice "Get some rest."
 ```
 
+#### Clearing the Cache
+If a player picks a choice that stays in the current script, you should manually clear the prefetch cache to save GPU memory:
+```vnef
+scene_next "none"
+```
+
 ### `scene "scene_name"`
 
 Immediately loads a scene and makes it active. Use this at the start of a chapter.

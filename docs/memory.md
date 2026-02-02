@@ -34,7 +34,20 @@ Scenes manage assets for each chapter, freeing them when switching.
 | Manifests | `manifest.odin` | `manifest_cleanup()` |
 | Scene manager | `scene.odin` | `scene_system_cleanup()` |
 
-### 4. Transient Strings (Short-Lived)
+### 4. Character State (Global Cache / "Backstage")
+Characters remain loaded across scene transitions using the Dharana model.
+
+| What | File | Cleanup Procedure |
+|------|------|-------------------|
+| Character structs | `character.odin` | `character_cleanup()` |
+| Character textures | Uses `scene.odin` cache | Freed with scene |
+
+**Note**: `g_characters` is a global map (The "Backstage"). 
+- **Auto-Flush**: When a character is hidden with `char Alice hide`, they are **immediately deleted** from RAM.
+- **Chapter Purge**: All active characters are flushed when jumping to a new script file via `jump_file`. 
+- **Persistence**: Visible characters are automatically snapshotted into `sthiti` save files (v4) and restored on load.
+
+### 5. Transient Strings (Short-Lived)
 These are created on-the-fly and deleted immediately after use.
 
 | What | When Created | When Deleted |

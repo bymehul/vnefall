@@ -2,6 +2,27 @@
 
 All notable changes to Vnefall will be documented in this file.
 
+## [1.2.0] - 2026-02-03
+### Added
+- **Character Snapshots**: Full persistence for characters (sprite, position, Z-index) via Sthiti-DB v4.
+- **Stutter-Free Transitions**: Intelligent background maintenance and pre-loading across script files.
+- **Resource Control**: New `scene_next "none"` command to manually clear the prefetch cache.
+- **Sthiti-DB v4**: Added support for string variables, textbox text, and active character lists.
+- **Precise Input**: Choice selection is now strictly bounded to button rectangles.
+- **Logic Expansion**: Basic math support and string comparison (`if name == "Alice"`).
+- **Keyboard Shortcuts**: Use number keys `1-9` for instant choice selection.
+- **Extension-Agnostic Assets**: Automatic resolution of `.png`, `.jpg`, etc., if extension is omitted.
+
+### Changed
+- **Memory Model**: Prefetching now loads textures immediately on the main thread.
+- **Scene System**: Transition logic now preserves visual continuity across `jump_file`.
+
+### Fixed
+- Fixed black screen flicker during script-to-script jumps.
+- Fixed mouse clicks triggering choices from anywhere on screen.
+- Fixed instructions skipping when loading saves from different files.
+- Fixed memory leaks in variable key persistence.
+
 ## [1.1.0] - 2026-02-02
 ### Added
 - **Scene System**: Per-chapter asset management with auto-generated manifests (`scene.odin`, `manifest.odin`).

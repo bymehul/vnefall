@@ -5,30 +5,45 @@ Logic and conditional branching using variables.
 ## Usage
 ```vnef
 set <var> = <value>
-if (<expression>) { ... }
-else { ... }
+if (<expression>) {
+    # commands
+} else {
+    # commands
+}
 ```
 
 ## Parameters
 - `<var>`: Variable name.
-- `<value>`: An integer, `true` (1), `false` (0), or another variable name.
+- `<value>`: An integer, string `"text"`, `true` (1), `false` (0), or another variable name.
 - `<expression>`: A comparison using `==`, `!=`, `>`, `<`, `>=`, `<=`.
 
 ## Logic Blocks
-Blocks are wrapped in curly braces `{}`. **Indentation is MANDATORY** for all commands inside a block.
+Blocks are wrapped in curly braces `{}`. **Indentation is MANDATORY** for readability.
 
 ```vnef
 set money = 100
+set name = "Alice"
 
-if (money >= 50) {
-    say Alice "You can afford the room."
+# Arithmetic
+set money = money + 50
+set money = money * 2
+
+# Logic Block
+if (money >= 200) {
+    say Alice "Rich!"
 } else {
-    say Alice "You're too poor."
+    say Alice "Poor..."
 }
 ```
 
+## Supported Operations
+- **Assignment**: `set x = y`, `set x = 10`, `set s = "string"`
+- **Arithmetic**: `+`, `-`, `*`, `/` (Integers only)
+- **Comparison**: `==`, `!=`, `>`, `<`, `>=`, `<=`. 
+    - **Strings**: Supports `==` and `!=` (e.g., `if (name == "Alice")`).
+    - **Type-Safety**: Comparing an integer to a string (e.g. `if (gold == "Alice")`) will safely return `false` instead of crashing.
+
 ## Notes
-- **Mandatory Indentation**: Always indent the "children" of an `if` or `else` statement. This makes it easy to see which code belongs to which branch.
+- **Mandatory Indentation**: Always indent the commands inside `if` or `else` blocks.
 - Variables are global to the current script file.
-- The `if` line and `else` line can optionally end with `{`.
-- `}` must be on its own line or followed by `else`.
+- `}` must be on its own line (or followed by `else`).

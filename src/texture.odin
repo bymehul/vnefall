@@ -6,12 +6,19 @@ import "core:c"
 import gl "vendor:OpenGL"
 import stbi "vendor:stb/image"
 
+// Texture info with dimensions
+Texture_Info :: struct {
+    id:     u32,
+    width:  i32,
+    height: i32,
+}
+
 // cache to avoid reloading same image twice
 @(private)
-cache: map[string]u32
+cache: map[string]Texture_Info
 
-texture_load :: proc(path: string) -> u32 {
-    if tex, ok := cache[path]; ok do return tex
+texture_load :: proc(path: string) -> Texture_Info {
+    if info, ok := cache[path]; ok do return info
     
     w, h, chans: c.int
     cp := strings.clone_to_cstring(path)
@@ -21,7 +28,7 @@ texture_load :: proc(path: string) -> u32 {
     data := stbi.load(cp, &w, &h, &chans, 4)
     if data == nil {
         fmt.eprintln("Image failed to load:", path)
-        return 0
+        return {}
     }
     defer stbi.image_free(data)
     
@@ -39,13 +46,19 @@ texture_load :: proc(path: string) -> u32 {
     
     gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, data)
     
-    cache[path] = tex
-    return tex
+    info := Texture_Info{id = tex, width = i32(w), height = i32(h)}
+    cache[path] = info
+    return info
+}
+
+// Legacy function for backwards compatibility (returns just the ID)
+texture_load_id :: proc(path: string) -> u32 {
+    return texture_load(path).id
 }
 
 texture_cleanup :: proc() {
-    for _, &tex in cache {
-        gl.DeleteTextures(1, &tex)
+    for _, &info in cache {
+        gl.DeleteTextures(1, &info.id)
     }
     delete(cache)
 }

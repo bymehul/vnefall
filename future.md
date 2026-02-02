@@ -21,93 +21,78 @@
 
 ---
 
-## v1.2.0: Variables & Choices Enhancement (Next Target)
+## v1.2.0: The "Stability & Presence" Update ✅ COMPLETE
 
-- [ ] **String Variables**: Support `set name = "Alice"` in addition to integers.
-- [ ] **Arithmetic Expressions**: Support `set gold = gold + 10`.
-- [ ] **Choice Pagination**: Show N choices at a time (e.g., `choice_show 3`).
-- [ ] **Choice Clear Command**: Manual `choice_clear` before showing different subsets.
-- [ ] **Type-Safe Variables**: Union type for int/string with runtime checks.
+This update combines a simplified character system, Sthiti-DB persistence, and hybrid variables.
 
----
+### 🎭 Characters (Simplified System)
+- [x] **Single-Sprite Model**: Characters use one sprite at a time (layering deferred to v2).
+- [x] **`char` Commands**: `char <name> show <sprite> at <pos>`, `char <name> hide`.
+- [x] **Responsive Positions**: `left` (25%), `center` (50%), `right` (75%) of screen.
+- [x] **Dharana Retention**: Characters stay in global cache across scene jumps.
+- [x] **Scale-to-Fit**: Automatically fit sprites to 80% screen height.
+- [x] **Character Z-Index**: Stacking order control via `z [value]`.
+- [x] **Flexible Extensions**: Support for `.jpg`, `.png`, and default formats.
 
-## v1.3.0: Character Sprites
+### 💾 Persistence (Sthiti-DB Integration)
+- [x] **Native Save/Load**: `save` and `load` commands using Sthiti-DB protocol.
+- [x] **Configurable Save Path**: `path_saves` in `config.vnef`.
+- [x] **Variable Retention**: All story flags saved (integers only; strings deferred).
+- [x] **Timestamp Support**: Save files include timestamp metadata.
 
-- [ ] **Sprite System**: Show character sprites on screen.
-- [ ] **Sprite Positions**: Left, center, right positioning.
-- [ ] **Sprite Expressions**: Swap faces/emotions dynamically.
-- [ ] **Sprite Commands**: `sprite show`, `sprite hide`, `sprite move`.
+### 🔢 Logic & Strings
+- [x] **String Variables**: Support `set name = "Alice"` and interpolation.
+- [x] **Arithmetic**: Basic math in scripts (e.g., `set gold = gold + 50`).
+- [x] **String Comparison**: `if (name == "Alice")` and `if (name == "")` work.
+- [x] **Type-Safe Comparison**: Comparing int to string returns `false` (no crash).
 
----
-
-## v1.4.0: Save System & Persistence
-
-- [ ] **Native Save Database**: Built-in Odin/C key-value store for game saves.
-  - Pure Odin implementation (no external dependencies)
-  - Binary format for fast read/write
-  - Human-readable fallback (JSON-like)
-- [ ] **Save / Load Commands**: `save "slot_1"`, `load "slot_1"`.
-- [ ] **Auto-Save**: Optional checkpoint saves.
-- [ ] **Variable Persistence**: All `set` variables saved to disk.
-- [ ] **Save Metadata**: Timestamps, chapter name, playtime.
+### 🖱️ UI Enhancement
+- [x] **Keyboard Shortcuts**: Number keys (1-9) for selecting choices instantly.
 
 ---
 
-## v1.5.0: Visual Polish
+## v1.3.0: Audio Expansion (Sound & Voice)
 
-- [ ] **Fade-to-Black Transitions**: Default cinematic fade during `jump_file`.
-- [ ] **Loading Icon**: Pulsing icon in corner while `scene_next` is prefetching.
-- [ ] Visual transitions (cross-fades)
-- [ ] Text animations (typewriter effect)
-- [ ] Shake / flash effects
-- [ ] Custom shaders
-- [ ] Particle effects (rain, snow, sparkles)
+- [ ] **SFX & Voices**: Support for per-character voice clips and sound effect triggers.
+- [ ] **Audio Mixer**: Global, Music, and SFX volume channels.
+- [ ] **Volume Persistence**: Save volume levels in `config.vnef` or a separate settings file.
+- [ ] **Music Fades**: Smooth volume cross-fading when switching tracks.
 
 ---
 
-## v1.6.0: Audio Expansion
+## v1.4.0: Visual & Interface Polish (Transitions & UI)
 
-- [ ] Sound effects (SFX)
-- [ ] Voice acting support
-- [ ] Per-character voice playback
-- [ ] Audio ducking
-
----
-
-## v1.7.0: UI & UX
-
-- [ ] Settings menu (volume, text speed)
-- [ ] Backlog (dialogue history)
-- [ ] Skip read text
-- [ ] Auto-advance mode
-- [ ] Gallery Mode (unlock and view CGs)
+- [ ] **Cinematic Transitions**: Fades and wipes for backgrounds and character sprites.
+- [ ] **Custom Textbox**: Support for custom PNG backgrounds and transparency controls for the dialogue box.
+- [ ] **UI Customization**: Fully customizable Choice buttons (PNG textures, hover effects).
+- [ ] **Text Effects**: Typewriter speed control, text shaking, and color tags.
 
 ---
 
-## v1.8.0: Localization & Modding
+## v1.5.0: System & Settings (Preferences Menu)
 
-- [ ] Multi-language support
-- [ ] External translation files
-- [ ] Custom font loading
-
----
-
-## v1.9.0: Tooling
-
-- [ ] Script editor GUI
-- [ ] Asset packer
-- [ ] Debug console
-- [ ] Hot reload scripts
+- [ ] **Settings Menu**: A pre-built, high-quality menu for Volume, Text Speed, and Display Mode.
+- [ ] **Menu Logic**: Handling settings changes instantly without restarting the engine.
+- [ ] **Backlog**: A scrollable history window for reviewing previously read text.
+- [ ] **Auto-Advance**: Toggleable mode for automatic reading progression.
 
 ---
 
-## v2: Someday / Maybe
+## v1.6.0: Tooling & Performance Optimizer
 
-- [ ] Mobile port (Android / iOS)
-- [ ] Web export (Emscripten)
-- [ ] CG gallery
-- [ ] Music box (soundtrack viewer)
-- [ ] EnvelopeDB integration for cloud saves
-- [ ] Mini-games framework
-- [ ] Live2D-style animations
-- [ ] **Rendering Abstraction**: Move to `wgpu` or `sokol_gfx` to support Web/Mobile and ensure long-term macOS safety.
+- [ ] **Global Texture Registry**: Prevent duplicate assets from being loaded into VRAM. Deduplicates shared backgrounds across scripts.
+- [ ] **LRU Cache (Least Recently Used)**: Automatically evict old textures when reaching a memory limit, rather than manual `scene_next none`.
+- [ ] **Intelligent Streaming**: Predict upcoming assets by scanning the script ahead of the player (Ren'Py-style prediction).
+- [ ] **Script Linter**: Check `.vnef` files for syntax errors or broken jumps.
+- [ ] **Debug Console**: Runtime variable viewer and command executor (F3).
+- [ ] **Hot Reload**: Live script reloading while the engine is running.
+
+---
+
+## v2: Future Horizons
+
+- [ ] **Layered Sprite Model**: Full `base` + `outfit` + `expression` compositing.
+- [ ] **WGPU Port**: Move to `wgpu` or `sokol_gfx` for Web (WASM) and Mobile support.
+- [ ] **Live2D / Mesh Warp**: Support for subtle breathing/blink animations.
+- [ ] **Rollback System**: Full state "Back" command (Rewind time).
+- [ ] **Mini-game Framework**: Native support for simple interactive puzzles.

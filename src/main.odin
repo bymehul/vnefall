@@ -11,8 +11,9 @@ import "core:fmt"
 import "core:os"
 import "core:strings"
 import "core:mem"
+import SDL "vendor:sdl2"
 
-VERSION :: "1.1.0"
+VERSION :: "1.2.0"
 
 Choice_Option :: struct {
     text:  string,
@@ -109,10 +110,12 @@ main :: proc() {
             bx       := (cfg.design_width - button_w) / 2
             
             // Check mouse hover
+            hovered_idx := -1
             for i in 0..<count {
                 by := start_y + f32(i) * (button_h + spacing)
                 if mx >= bx && mx <= bx + button_w && my >= by && my <= by + button_h {
                     g.choice.selected = i
+                    hovered_idx = i
                     break
                 }
             }
@@ -129,20 +132,33 @@ main :: proc() {
                 g.input.select_pressed = true
             }
             if g.input.select_pressed {
-                choice := g.choice.options[g.choice.selected]
-                target_label := strings.clone(choice.label)
-                defer delete(target_label)
-                
-                choice_clear(&g)
-                g.choice.active = false
-                
+                // If this was a mouse click, we MUST be hovering over the button
+                if !g.input.mouse_clicked || (g.input.mouse_clicked && hovered_idx != -1) {
+                    choice := g.choice.options[g.choice.selected]
+                    target_label := strings.clone(choice.label)
+                    defer delete(target_label)
+                    
+                    choice_clear(&g)
+                    g.choice.active = false
+                    
+                    if target, ok := g.script.labels[target_label]; ok {
+                        g.script.ip = target
+                        g.script.waiting = false
+                        g.textbox.visible = false
+                    }
+                }
+            }
+            
+            // Keyboard shortcuts 1-9
+            np := g.input.number_pressed
+            if np > 0 && np <= len(g.choice.options) {
+                target_label := g.choice.options[np-1].label
                 if target, ok := g.script.labels[target_label]; ok {
+                    choice_clear(&g)
+                    g.choice.active = false
                     g.script.ip = target
                     g.script.waiting = false
                     g.textbox.visible = false
-                } else {
-                    fmt.eprintln("Error: Choice refers to non-existent label:", target_label)
-                    g.script.waiting = false
                 }
             }
         } else if g.input.advance_pressed {
@@ -159,6 +175,8 @@ main :: proc() {
         if g.current_bg != 0 {
             renderer_draw_fullscreen(&g.renderer, g.current_bg)
         }
+        
+        character_draw_all(&g.renderer)
         
         if g.textbox.visible {
             renderer_draw_textbox(&g.renderer, g.textbox.speaker, g.textbox.text)
@@ -203,8 +221,9 @@ init_game :: proc(script_path: string) -> bool {
         return false
     }
     
-    // Initialize scene system
+    // Initialize scene and character systems
     scene_init()
+    character_init()
     g_scenes.current = scene_load_sync(script_path)
     
     g.running = true
@@ -216,6 +235,7 @@ cleanup_game :: proc() {
     delete(g.choice.options)
     delete(g.textbox.text)
     script_destroy(&g.script)
+    character_cleanup()
     scene_system_cleanup()
     audio_cleanup(&g.audio)
     renderer_cleanup(&g.renderer)

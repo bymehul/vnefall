@@ -90,31 +90,35 @@ scene_load_sync :: proc(script_path: string) -> ^Scene {
     s.manifest = manifest
     
     // Load all textures
-    for bg in s.manifest.backgrounds {
-        path := strings.concatenate({cfg.path_images, bg})
-        defer delete(path)
-        tex := texture_load(path)
-        if tex != 0 {
-            s.textures[strings.clone(bg)] = tex
-        }
-    }
-    
-    for sp in s.manifest.sprites {
-        path := strings.concatenate({cfg.path_images, sp})
-        defer delete(path)
-        tex := texture_load(path)
-        if tex != 0 {
-            s.textures[strings.clone(sp)] = tex
-        }
-    }
-    
-    // Music is loaded on-demand, not cached in scene
+    scene_load_textures(s)
     
     s.ready = true
     s.loading = false
     fmt.printf("[scene] Loaded scene: %s (%d textures)\n", s.name, len(s.textures))
     
     return s
+}
+
+// Internal helper to load all textures in a manifest
+@(private)
+scene_load_textures :: proc(s: ^Scene) {
+    for bg in s.manifest.backgrounds {
+        path := strings.concatenate({cfg.path_images, bg})
+        defer delete(path)
+        info := texture_load(path)
+        if info.id != 0 {
+            s.textures[strings.clone(bg)] = info.id
+        }
+    }
+    
+    for sp in s.manifest.sprites {
+        path := strings.concatenate({cfg.path_images, sp})
+        defer delete(path)
+        info := texture_load(path)
+        if info.id != 0 {
+            s.textures[strings.clone(sp)] = info.id
+        }
+    }
 }
 
 // Cleanup a scene and free all its resources
@@ -149,6 +153,12 @@ scene_prefetch :: proc(script_path: string) {
     if g_scenes.next != nil {
         scene_cleanup(g_scenes.next)
         g_scenes.next = nil
+    }
+    
+    // Support manual clear via "none"
+    if script_path == "none" {
+        fmt.println("[scene] Prefetch cleared manually.")
+        return
     }
     
     // Start background loading
@@ -196,11 +206,11 @@ scene_prefetch :: proc(script_path: string) {
     }
     s.manifest = manifest
     
-    // Note: We can't do OpenGL calls from a background thread!
-    // Instead, we'll prepare a list of assets to load, and the
-    // main thread will load them during idle time.
+    // Load textures immediately (main thread for OpenGL safety)
+    scene_load_textures(s)
+    
     s.loading = false
-    s.ready = true  // Manifest is ready, textures will load on-demand
+    s.ready = true
 }
 
 // Switch to the prefetched scene (call after scene_prefetch)
@@ -222,8 +232,14 @@ scene_switch :: proc() -> bool {
     g_scenes.current = g_scenes.next
     g_scenes.next = nil
     
-    // Reset background ID as the old one is now deleted
-    g.current_bg = 0
+    // Maintain background ID if possible to avoid black screen flash
+    if g.script.bg_path != "" {
+        tex := scene_get_texture(g.script.bg_path)
+        if tex != 0 do g.current_bg = tex
+        else do g.current_bg = 0
+    } else {
+        g.current_bg = 0
+    }
     
     fmt.println("[scene] Switched to scene:", g_scenes.current.name)
     return true
@@ -239,9 +255,12 @@ scene_get_texture :: proc(name: string) -> u32 {
     }
     
     // Fallback to loading from disk
-    path := strings.concatenate({cfg.path_images, name})
+    ext := ".png"
+    if strings.contains(name, ".") do ext = ""
+    
+    path := strings.concatenate({cfg.path_images, name, ext})
     defer delete(path)
-    return texture_load(path)
+    return texture_load(path).id
 }
 
 // Cleanup the entire scene system

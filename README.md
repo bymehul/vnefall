@@ -8,8 +8,10 @@ Vnefall is a simple, no-nonsense visual novel engine. It's built in Odin using S
 - **Branching Dialogue**: Full support for labels, jumps, and player choices.
 - **Configuration System**: Portable `config.vnef` file for resolution, colors, and paths.
 - **Virtual Resolution**: Design once, it scales automatically to any screen.
-- **Simple Syntax**: Commands like `say`, `bg`, `choice`, `set`, and `if`.
+- **Simple Syntax**: Commands like `say`, `bg`, `char`, `choice`, `set`, and `if`.
 - **Audio Support**: Background music with looping support.
+- **Sthiti Persistence**: Fast, native Save/Load system for story progress.
+- **Character Stacking**: Responsive scaling and Z-index control for sprites.
 
 ## How to get started
 
@@ -30,9 +32,9 @@ You'll need the [Odin Compiler](https://odin-lang.org/) and SDL2 libraries.
 # Install dependencies
 sudo apt install libsdl2-dev libsdl2-mixer-dev libsdl2-ttf-dev
 
-# Build (v1.1.0)
+# Build (v1.2.0)
 ./build.sh
-./vnefall assets/scripts/demo_game.vnef
+./vnefall assets/scripts/v120_char_pro.vnef
 ```
 
 **Windows:**
