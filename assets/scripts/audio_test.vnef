@@ -1,0 +1,28 @@
+# Audio Expansion Test (v1.3.0)
+
+bg room.png
+music demo_theme.ogg
+ambience demo_ambience.ogg
+say Alice "Audio test started."
+
+sfx ui_confirm.wav
+say Alice "Played SFX."
+
+voice demo_voice.wav
+say Alice "Played voice clip."
+
+volume music 0.4
+volume ambience 0.5
+volume sfx 0.8
+volume voice 0.8
+say Alice "Adjusted volumes."
+
+music_fade demo_theme_alt.ogg 1500
+ambience_fade demo_ambience_alt.ogg 1200
+say Alice "Fading to new track."
+
+music_stop_fade 1200
+ambience_stop
+say Alice "Stopped music and ambience."
+
+end

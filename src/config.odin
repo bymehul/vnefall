@@ -26,6 +26,9 @@ Config :: struct {
     path_assets:     string,
     path_images:     string,
     path_music:      string,
+    path_ambience:   string,
+    path_sfx:        string,
+    path_voice:      string,
     path_scripts:    string,
     path_manifests:  string,
     path_characters: string,
@@ -39,6 +42,9 @@ Config :: struct {
     textbox_margin:  f32,
     textbox_padding: f32,
     
+    // Optional loading screen image (relative to path_images)
+    loading_image:   string,
+    
     // Choice Menu Styles
     choice_w:          f32,
     choice_h:          f32,
@@ -50,6 +56,13 @@ Config :: struct {
     
     // Logic
     text_speed:      f32,
+
+    // Audio (defaults)
+    volume_master:   f32,
+    volume_music:    f32,
+    volume_ambience: f32,
+    volume_sfx:      f32,
+    volume_voice:    f32,
 }
 
 // Global config instance
@@ -67,6 +80,9 @@ config_init_defaults :: proc() {
     cfg.path_assets    = strings.clone("assets/")
     cfg.path_images    = strings.clone("assets/images/")
     cfg.path_music     = strings.clone("assets/music/")
+    cfg.path_ambience  = strings.clone("assets/ambience/")
+    cfg.path_sfx       = strings.clone("assets/sfx/")
+    cfg.path_voice     = strings.clone("assets/voice/")
     cfg.path_scripts   = strings.clone("assets/scripts/")
     cfg.path_manifests = strings.clone("assets/manifests/")
     cfg.path_characters = strings.clone("assets/images/characters/")
@@ -79,6 +95,8 @@ config_init_defaults :: proc() {
     cfg.textbox_margin  = 40
     cfg.textbox_padding = 20
     
+    cfg.loading_image = strings.clone("")
+    
     cfg.choice_w          = 600
     cfg.choice_h          = 60
     cfg.choice_spacing    = 20
@@ -88,6 +106,12 @@ config_init_defaults :: proc() {
     cfg.choice_text_hov   = {1.0, 0.84, 0.0, 1.0}
     
     cfg.text_speed     = 0.05
+
+    cfg.volume_master = 1.0
+    cfg.volume_music  = 1.0
+    cfg.volume_ambience = 1.0
+    cfg.volume_sfx    = 1.0
+    cfg.volume_voice  = 1.0
 }
 
 config_load :: proc(path: string) -> bool {
@@ -149,6 +173,15 @@ config_load :: proc(path: string) -> bool {
         case "path_music":      
             delete(cfg.path_music)
             cfg.path_music    = strings.clone(strings.trim(val, "\""))
+        case "path_ambience":
+            delete(cfg.path_ambience)
+            cfg.path_ambience = strings.clone(strings.trim(val, "\""))
+        case "path_sfx":
+            delete(cfg.path_sfx)
+            cfg.path_sfx      = strings.clone(strings.trim(val, "\""))
+        case "path_voice":
+            delete(cfg.path_voice)
+            cfg.path_voice    = strings.clone(strings.trim(val, "\""))
         case "path_scripts":    
             delete(cfg.path_scripts)
             cfg.path_scripts  = strings.clone(strings.trim(val, "\""))
@@ -176,6 +209,10 @@ config_load :: proc(path: string) -> bool {
         case "textbox_padding":  
             v, _ := strconv.parse_f32(val)
             cfg.textbox_padding = v
+        
+        case "loading_image":
+            delete(cfg.loading_image)
+            cfg.loading_image = strings.clone(strings.trim(val, "\""))
 
         case "choice_w":
             v, _ := strconv.parse_f32(val)
@@ -194,6 +231,22 @@ config_load :: proc(path: string) -> bool {
         case "text_speed":      
             v, _ := strconv.parse_f32(val)
             cfg.text_speed = v
+        
+        case "volume_master":
+            v, _ := strconv.parse_f32(val)
+            cfg.volume_master = v
+        case "volume_music":
+            v, _ := strconv.parse_f32(val)
+            cfg.volume_music = v
+        case "volume_ambience":
+            v, _ := strconv.parse_f32(val)
+            cfg.volume_ambience = v
+        case "volume_sfx":
+            v, _ := strconv.parse_f32(val)
+            cfg.volume_sfx = v
+        case "volume_voice":
+            v, _ := strconv.parse_f32(val)
+            cfg.volume_voice = v
         }
         
         delete(parts)
@@ -208,7 +261,11 @@ config_cleanup :: proc() {
     delete(cfg.path_assets)
     delete(cfg.path_images)
     delete(cfg.path_music)
+    delete(cfg.path_ambience)
+    delete(cfg.path_sfx)
+    delete(cfg.path_voice)
     delete(cfg.path_scripts)
+    delete(cfg.loading_image)
     delete(cfg.path_manifests)
     delete(cfg.path_characters)
     delete(cfg.path_saves)

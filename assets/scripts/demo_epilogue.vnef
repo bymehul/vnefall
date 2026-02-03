@@ -1,11 +1,14 @@
-title "Inkframe - Epilogue"
+title "Inkframe v1.3.0 - Epilogue"
 
 scene "demo_epilogue"
 bg "apartment.png"
 
+music "demo_theme_alt.ogg"
+ambience "demo_ambience_alt.ogg"
+
 char Emi show happy at center z 5
-say Emi "New file! See how the transition was zero-stutter?"
-say Emi "That's the `scene_next` prefetching at work."
+say Emi "New file! The transition should be zero-stutter."
+say Emi "scene_next now prefetches textures and audio."
 
 say Emi "I'll keep your name as ${player_name} forever."
 
@@ -13,5 +16,5 @@ if (met_kaito) {
     say Emi "Kaito says goodbye too."
 }
 
-say Emi "Inkframe v1.2.0: Stability & Presence. Complete."
+say Emi "Inkframe v1.3.0: Audio Expansion complete."
 end

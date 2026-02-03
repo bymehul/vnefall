@@ -90,7 +90,8 @@ scene_load_sync :: proc(script_path: string) -> ^Scene {
     s.manifest = manifest
     
     // Load all textures
-    scene_load_textures(s)
+    scene_load_textures(s, nil)
+    audio_prefetch_scene(&g.audio, &s.manifest)
     
     s.ready = true
     s.loading = false
@@ -101,8 +102,15 @@ scene_load_sync :: proc(script_path: string) -> ^Scene {
 
 // Internal helper to load all textures in a manifest
 @(private)
-scene_load_textures :: proc(s: ^Scene) {
+scene_load_textures :: proc(s: ^Scene, reuse: ^Scene) {
     for bg in s.manifest.backgrounds {
+        if reuse != nil {
+            if tex, ok := reuse.textures[bg]; ok {
+                s.textures[strings.clone(bg)] = tex
+                continue
+            }
+        }
+        
         path := strings.concatenate({cfg.path_images, bg})
         defer delete(path)
         info := texture_load(path)
@@ -112,6 +120,13 @@ scene_load_textures :: proc(s: ^Scene) {
     }
     
     for sp in s.manifest.sprites {
+        if reuse != nil {
+            if tex, ok := reuse.textures[sp]; ok {
+                s.textures[strings.clone(sp)] = tex
+                continue
+            }
+        }
+        
         path := strings.concatenate({cfg.path_images, sp})
         defer delete(path)
         info := texture_load(path)
@@ -126,6 +141,7 @@ scene_cleanup :: proc(s: ^Scene) {
     if s == nil do return
     
     delete(s.name)
+    audio_flush_scene(&g.audio, &s.manifest)
     
     // Delete OpenGL textures owned by this scene
     for path, &tex in s.textures {
@@ -136,6 +152,38 @@ scene_cleanup :: proc(s: ^Scene) {
     
     manifest_cleanup(&s.manifest)
     free(s)
+}
+
+// Cleanup a scene but keep shared assets from the next scene
+scene_cleanup_keep :: proc(s: ^Scene, next: ^Scene) {
+    if s == nil do return
+    
+    delete(s.name)
+    audio_flush_scene_keep(&g.audio, &s.manifest, &next.manifest)
+    
+    // Delete OpenGL textures owned by this scene (skip shared)
+    for path, &tex in s.textures {
+        shared := false
+        if contains_string_scene(next.manifest.backgrounds[:], path) do shared = true
+        if !shared && contains_string_scene(next.manifest.sprites[:], path) do shared = true
+        
+        if !shared {
+            gl.DeleteTextures(1, &tex)
+        }
+        delete(path)
+    }
+    delete(s.textures)
+    
+    manifest_cleanup(&s.manifest)
+    free(s)
+}
+
+@(private)
+contains_string_scene :: proc(slice: []string, s: string) -> bool {
+    for item in slice {
+        if item == s do return true
+    }
+    return false
 }
 
 // Start prefetching a scene in the background
@@ -157,7 +205,7 @@ scene_prefetch :: proc(script_path: string) {
     
     // Support manual clear via "none"
     if script_path == "none" {
-        fmt.println("[scene] Prefetch cleared manually.")
+        fmt.println("[scene] Prefetch cleared: textures + audio freed.")
         return
     }
     
@@ -207,7 +255,8 @@ scene_prefetch :: proc(script_path: string) {
     s.manifest = manifest
     
     // Load textures immediately (main thread for OpenGL safety)
-    scene_load_textures(s)
+    scene_load_textures(s, g_scenes.current)
+    audio_prefetch_scene(&g.audio, &s.manifest)
     
     s.loading = false
     s.ready = true
@@ -225,7 +274,7 @@ scene_switch :: proc() -> bool {
     
     // Cleanup current scene
     if g_scenes.current != nil {
-        scene_cleanup(g_scenes.current)
+        scene_cleanup_keep(g_scenes.current, g_scenes.next)
     }
     
     // Switch

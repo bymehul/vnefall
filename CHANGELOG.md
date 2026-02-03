@@ -2,6 +2,19 @@
 
 All notable changes to Vnefall will be documented in this file.
 
+## [1.3.0] - 2026-02-03
+### Added
+- **Audio Expansion**: `sfx`, `voice`, `volume`, and `music_fade` script commands.
+- **Music Stop**: New `music_stop` and `music_stop_fade` commands.
+- **Ambience**: New looping ambient channel with `ambience`, `ambience_fade`, and `ambience_stop` commands.
+- **Audio Mixer**: Master/Music/Ambience/SFX/Voice volume channels with runtime updates.
+- **User Settings**: New `settings.vnef` for persisted volume preferences.
+- **Scene Audio Prefetch**: `scene_next` now preloads music, ambience, SFX, and voice assets.
+- **Save/Load Audio**: Music, ambience, voice, and active SFX are now restored on load.
+- **Save/Load Choices**: Active choice menus and selection highlight are restored on load.
+- **Sthiti-DB v6**: Save files now include audio state and choice menu data.
+- **Loading Screen**: Optional loading image shown during transitions when a `bg` is delayed.
+
 ## [1.2.0] - 2026-02-03
 ### Added
 - **Character Snapshots**: Full persistence for characters (sprite, position, Z-index) via Sthiti-DB v4.

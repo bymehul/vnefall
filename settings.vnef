@@ -1,0 +1,7 @@
+# Vnefall Settings
+
+volume_master = 0.8
+volume_music  = 0.6
+volume_ambience = 0.4
+volume_sfx    = 0.8
+volume_voice  = 0.89999998

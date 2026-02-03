@@ -1,4 +1,4 @@
-title "Inkframe v1.2.0: Technical Demo"
+title "Inkframe v1.3.0: Audio Expansion Demo"
 
 # --- Setup ---
 set player_name = "Zen"
@@ -8,25 +8,43 @@ set met_kaito = false
 # --- The Start ---
 scene "demo_game"
 bg "room.png"
-music "hope.mp3"
+
+# Audio: music + ambience + sfx + voice
+music "demo_theme.ogg"
+ambience "demo_ambience.ogg"
+sfx "ui_confirm.wav"
+voice "demo_voice.wav"
+
+volume master 0.8
 save "auto_start"
 
 char Emi show happy at center z 5
-say Emi "Welcome to the new Inkframe engine! My name is Emi."
-say Emi "You must be ${player_name}. I've heard a lot about your coding skills."
+say Emi "Welcome to Inkframe v1.3.0!"
+say Emi "We now support music, ambience, SFX, and voice."
+
+# Volume controls (0.0 - 1.0)
+volume music 0.6
+volume ambience 0.4
+volume sfx 0.8
+volume voice 0.9
+say Emi "Volumes set. These persist in settings.vnef."
 
 choice_add "Talk to Emi" talk_emi
 choice_add "Go to the Lounge" go_lounge
-choice_add "Save Progress" save_game
+choice_add "Test Audio Fades + Save" test_fades
+choice_add "Test Stops (Silence)" test_stops
+choice_add "Save Progress (v6)" save_game
+choice_add "Clear Prefetch Cache" clear_prefetch
+choice_add "Load Audio Save" load_audio
 choice_show
 
 label talk_emi:
     char Emi show normal at center z 5
-    say Emi "I'm currently using the simplified sprite system."
-    say Emi "No more complex JSONs. Just put a PNG in my folder and call its name!"
+    say Emi "I'm using the simplified sprite system."
+    say Emi "Drop a PNG in my folder and call its name!"
     
     char Emi show happy at center z 5
-    say Emi "Plus, I automatically scale to fit the screen. Pretty cool, right?"
+    say Emi "I also scale to fit the screen. Pretty cool, right?"
     jump story_cont
 
 label go_lounge:
@@ -39,17 +57,51 @@ label go_lounge:
     say Kaito "Quiet? It was, until you brought ${player_name} here."
     
     char Kaito show angry at right z 10
-    say Kaito "And why am I standing in front of Emi? Ah, the Z-index test."
     say Kaito "My Z is 10, hers is 5. So I overlap her."
     
     char Kaito hide
-    say Emi "And now he's vanished! Every time we hide someone, the engine frees their memory."
+    say Emi "When we hide a character, the engine frees their memory."
+    jump story_cont
+
+label test_fades:
+    music_fade demo_theme_alt.ogg 1200
+    ambience_fade demo_ambience_alt.ogg 1200
+    sfx ui_confirm.wav
+    voice demo_voice.wav
+    say Emi "Faded audio tracks and triggered SFX/Voice."
+    say Emi "I'm saving the current audio state now."
+    save "audio_state"
+    say Emi "Use 'Load Audio Save' to verify restore."
+    jump story_cont
+
+label test_stops:
+    music_stop
+    ambience_stop
+    say Emi "Music and ambience stopped immediately."
+    
+    music "demo_theme.ogg"
+    ambience "demo_ambience.ogg"
+    say Emi "Restarted music and ambience."
+    
+    music_stop_fade 1200
+    ambience_stop
+    say Emi "Music faded out and ambience stopped."
     jump story_cont
 
 label save_game:
-    say Emi "Let's test the Sthiti-DB v2 persistence."
+    say Emi "Testing Sthiti-DB v6 persistence."
     save "demo_quicksave"
-    say Emi "Your name (${player_name}) and state are now saved to disk!"
+    say Emi "Audio + choices + variables are now saved!"
+    jump story_cont
+
+label clear_prefetch:
+    scene_next "none"
+    say Emi "Prefetch cache cleared manually."
+    jump story_cont
+
+label load_audio:
+    load "audio_state"
+    say Emi "If you see this, the save wasn't found."
     jump story_cont
 
 label story_cont:
@@ -58,11 +110,16 @@ label story_cont:
     
     char Emi show surprised at center z 5
     say Emi "We're nearing the end of this module."
+    say Emi "scene_next also prefetches audio now."
+    
+    sfx ui_confirm.wav
+    voice demo_voice.wav
+    ambience "demo_ambience.ogg"
     
     if (met_kaito == true) {
         say Emi "Since you met Kaito, I should warn you... he's a bit grumpy."
     } else {
-        say Emi "Since you avoided the lounge, it's been a very peaceful day!"
+        say Emi "Since you avoided the lounge, it's been a peaceful day!"
     }
     
     say Emi "Ready for the next script?"

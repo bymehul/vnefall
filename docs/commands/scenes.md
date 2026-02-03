@@ -19,6 +19,7 @@ If a player picks a choice that stays in the current script, you should manually
 ```vnef
 scene_next "none"
 ```
+This clears prefetched **textures + audio** while keeping the current scene active.
 
 ### `scene "scene_name"`
 
@@ -32,11 +33,11 @@ say Alice "What a beautiful day!"
 
 ## How It Works
 
-1. **Auto-Generated Manifests**: When a scene is first loaded, the engine scans the script for `bg`, `sprite`, and `music` commands and creates a `.manifest` file listing all required assets.
+1. **Auto-Generated Manifests**: When a scene is first loaded, the engine scans the script for `bg`, `sprite`, `music`, `ambience`, `sfx`, and `voice` commands and creates a `.manifest` file listing all required assets.
 
-2. **Prefetching**: `scene_next` loads the manifest and prepares assets while the player is still reading. This eliminates loading screens.
+2. **Prefetching**: `scene_next` loads the manifest and prepares textures + audio while the player is still reading. This minimizes loading screens; if the new script doesn’t set a `bg` quickly, a loading image can be shown.
 
-3. **Memory Management**: Each scene owns its textures. When you switch scenes, the old scene's assets are freed automatically.
+3. **Memory Management**: Each scene owns its textures. When you switch scenes, assets not required by the next scene are freed automatically, while shared textures/audio are preserved to avoid reloading spikes.
 
 ## Example: Multi-Chapter Game
 
@@ -64,6 +65,9 @@ bg beach.png
 bg sunset.png
 sprite alice_swimsuit.png
 music beach_theme.ogg
+ambience ocean_waves.ogg
+sfx door_open.ogg
+voice alice_intro.ogg
 ```
 
 ## Best Practices
@@ -72,4 +76,4 @@ music beach_theme.ogg
 
 2. **One Scene Per Chapter**: Each major chapter should be its own scene to control memory.
 
-3. **Shared Assets**: If two scenes share assets (e.g., character sprites), they'll be loaded twice. Future versions may add shared asset pools.
+3. **Shared Assets**: Assets present in both the current and next scene are preserved on switch to avoid double-loading. Reuse filenames for shared sprites/backgrounds/audio to benefit from this.

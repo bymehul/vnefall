@@ -6,7 +6,17 @@ Prefetching allows your game to load assets for the next script in the backgroun
 When you call `scene_next "my_next_script"`, the engine:
 1.  Generates/Loads a **Manifest** for that script.
 2.  Loads all **Textures** (backdrops and sprites) into GPU memory.
-3.  Holds them in a "Ready" state until a `jump_file` command is triggered.
+3.  Prefetches **Audio** (music, ambience, SFX, voice) into memory.
+4.  Holds them in a "Ready" state until a `jump_file` command is triggered.
+
+## 🖼️ Optional Loading Screen
+If the next script doesn’t immediately set a `bg`, the engine can show a loading screen instead of a black flash.
+
+Add this to `config.vnef` (relative to `assets/images/`):
+```text
+loading_image = "loading.png"
+```
+If `loading_image` is empty, the engine falls back to a simple “Loading...” screen.
 
 ## 💾 Memory Management
 Vnefall is designed to be efficient with memory:
@@ -20,7 +30,7 @@ To clear it manually, use:
 ```vnef
 scene_next "none"
 ```
-This will dump the prefetched assets and free up GPU headroom.
+Prefetch cleared: **textures + audio freed** (current scene remains active).
 
 ## 🏆 Best Practices
 1.  **Branch Prefetching**: Instead of prefetching *before* a choice, prefetch **immediately after** the choice is made inside the branch label.

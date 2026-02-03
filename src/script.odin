@@ -13,6 +13,15 @@ Command_Type :: enum {
     Wait,
     End,
     Music,
+    MusicFade,
+    MusicStop,
+    MusicStopFade,
+    Ambience,
+    AmbienceFade,
+    AmbienceStop,
+    Sfx,
+    Voice,
+    Volume,
     Title,
     Label,
     Character,
@@ -225,6 +234,91 @@ parse_line :: proc(line: string) -> (cmd: Command) {
         cmd.type = .Music
         rest := strings.trim_space(line[off:])
         cmd.who = strings.clone(strings.trim(rest, "\""))
+        return
+    }
+
+    // music_fade <filename> <ms>
+    if strings.has_prefix(line, "music_fade ") {
+        cmd.type = .MusicFade
+        rest := strings.trim_space(line[11:])
+        parts := strings.split(rest, " ")
+        defer delete(parts)
+        if len(parts) >= 1 {
+            cmd.who = strings.clone(strings.trim(parts[0], "\""))
+        }
+        if len(parts) >= 2 {
+            cmd.what = strings.clone(strings.trim_space(parts[1]))
+        }
+        return
+    }
+    
+    // music_stop_fade <ms>
+    if strings.has_prefix(line, "music_stop_fade ") {
+        cmd.type = .MusicStopFade
+        rest := strings.trim_space(line[16:])
+        cmd.what = strings.clone(strings.trim_space(rest))
+        return
+    }
+    
+    // music_stop
+    if line == "music_stop" {
+        cmd.type = .MusicStop
+        return
+    }
+
+    // ambience <filename>
+    if strings.has_prefix(line, "ambience ") {
+        cmd.type = .Ambience
+        rest := strings.trim_space(line[9:])
+        cmd.who = strings.clone(strings.trim(rest, "\""))
+        return
+    }
+    
+    // ambience_fade <filename> <ms>
+    if strings.has_prefix(line, "ambience_fade ") {
+        cmd.type = .AmbienceFade
+        rest := strings.trim_space(line[14:])
+        parts := strings.split(rest, " ")
+        defer delete(parts)
+        if len(parts) >= 1 {
+            cmd.who = strings.clone(strings.trim(parts[0], "\""))
+        }
+        if len(parts) >= 2 {
+            cmd.what = strings.clone(strings.trim_space(parts[1]))
+        }
+        return
+    }
+    
+    // ambience_stop
+    if line == "ambience_stop" {
+        cmd.type = .AmbienceStop
+        return
+    }
+    
+    // sfx <filename>
+    if strings.has_prefix(line, "sfx ") {
+        cmd.type = .Sfx
+        rest := strings.trim_space(line[4:])
+        cmd.who = strings.clone(strings.trim(rest, "\""))
+        return
+    }
+    
+    // voice <filename>
+    if strings.has_prefix(line, "voice ") {
+        cmd.type = .Voice
+        rest := strings.trim_space(line[6:])
+        cmd.who = strings.clone(strings.trim(rest, "\""))
+        return
+    }
+    
+    // volume <channel> <value>
+    if strings.has_prefix(line, "volume ") {
+        cmd.type = .Volume
+        rest := strings.trim_space(line[7:])
+        parts := strings.split(rest, " ")
+        defer delete(parts)
+        if len(parts) >= 1 do cmd.who  = strings.clone(strings.trim_space(parts[0]))
+        if len(parts) >= 2 do cmd.what = strings.clone(strings.trim_space(parts[1]))
         return
     }
     
@@ -453,6 +547,7 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
         
         tex := scene_get_texture(c.who)
         if tex != 0 do state.current_bg = tex
+        state.loading_active = false
         s.ip += 1
         
     case .Music:
@@ -462,6 +557,87 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
         path := strings.concatenate({cfg.path_music, c.who, ext})
         defer delete(path)
         audio_play_music(&state.audio, path)
+        s.ip += 1
+
+    case .MusicFade:
+        ext := ".ogg"
+        if strings.contains(c.who, ".") do ext = ""
+        
+        ms := 1000
+        if c.what != "" {
+            if v, ok := strconv.parse_int(c.what); ok do ms = v
+        }
+        
+        path := strings.concatenate({cfg.path_music, c.who, ext})
+        defer delete(path)
+        audio_fade_music(&state.audio, path, ms)
+        s.ip += 1
+    
+    case .MusicStop:
+        audio_stop_music(&state.audio)
+        s.ip += 1
+    
+    case .MusicStopFade:
+        ms := 1000
+        if c.what != "" {
+            if v, ok := strconv.parse_int(c.what); ok do ms = v
+        }
+        audio_stop_music_fade(&state.audio, ms)
+        s.ip += 1
+    
+    case .Ambience:
+        ext := ".ogg"
+        if strings.contains(c.who, ".") do ext = ""
+        
+        path := strings.concatenate({cfg.path_ambience, c.who, ext})
+        defer delete(path)
+        audio_play_ambience(&state.audio, path)
+        s.ip += 1
+    
+    case .AmbienceFade:
+        ext := ".ogg"
+        if strings.contains(c.who, ".") do ext = ""
+        
+        ms := 1000
+        if c.what != "" {
+            if v, ok := strconv.parse_int(c.what); ok do ms = v
+        }
+        
+        path := strings.concatenate({cfg.path_ambience, c.who, ext})
+        defer delete(path)
+        audio_fade_ambience(&state.audio, path, ms)
+        s.ip += 1
+    
+    case .AmbienceStop:
+        audio_stop_ambience(&state.audio)
+        s.ip += 1
+    
+    case .Sfx:
+        ext := ".ogg"
+        if strings.contains(c.who, ".") do ext = ""
+        
+        path := strings.concatenate({cfg.path_sfx, c.who, ext})
+        defer delete(path)
+        audio_play_sfx(&state.audio, path)
+        s.ip += 1
+    
+    case .Voice:
+        ext := ".ogg"
+        if strings.contains(c.who, ".") do ext = ""
+        
+        path := strings.concatenate({cfg.path_voice, c.who, ext})
+        defer delete(path)
+        audio_play_voice(&state.audio, path)
+        s.ip += 1
+    
+    case .Volume:
+        if c.who != "" && c.what != "" {
+            if v, ok := strconv.parse_f32(c.what); ok {
+                audio_set_volume(&state.audio, c.who, v)
+                settings_set_volume(c.who, v)
+                settings_save()
+            }
+        }
         s.ip += 1
         
     case .Title:
@@ -520,6 +696,23 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
             return
         }
         delete(path)
+        
+        // Pre-set first background (first bg command in the file)
+        pre_bg := ""
+        for cmd in s.commands {
+            if cmd.type == .Bg {
+                pre_bg = cmd.who
+                break
+            }
+        }
+        if pre_bg != "" {
+            tex := scene_get_texture(pre_bg)
+            if tex != 0 do state.current_bg = tex
+            state.loading_active = false
+        } else {
+            state.current_bg = 0
+            state.loading_active = true
+        }
         
         // Reset state for new script
         state.textbox.visible = false
@@ -713,6 +906,22 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
         save.textbox_vis = state.textbox.visible
         if state.textbox.speaker != "" do save.speaker = strings.clone(state.textbox.speaker)
         if state.textbox.text != ""    do save.textbox_text = strings.clone(state.textbox.text)
+
+        // Save audio state (asset names)
+        save.music_path = audio_get_music_asset_if_playing(&state.audio)
+        save.ambience_path = audio_get_ambience_asset_if_playing(&state.audio)
+        save.voice_path = audio_get_voice_asset_if_playing(&state.audio)
+        save.sfx_paths = audio_get_sfx_assets_if_playing(&state.audio)
+
+        // Save choice menu state
+        save.choice_active = state.choice.active
+        save.choice_selected = i32(state.choice.selected)
+        for opt in state.choice.options {
+            c_opt: sthiti.Choice_Option_Save
+            c_opt.text  = strings.clone(opt.text)
+            c_opt.label = strings.clone(opt.label)
+            append(&save.choice_options, c_opt)
+        }
         
         for k, v in s.variables {
             #partial switch val in v {
@@ -797,6 +1006,54 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
             character_flush_all()
             for c in save.characters {
                 character_show(c.name, c.sprite_path, c.pos_name, c.z)
+            }
+
+            // Restore audio state
+            audio_stop_music(&state.audio)
+            audio_stop_ambience(&state.audio)
+            audio_stop_voice(&state.audio)
+            audio_stop_sfx_all(&state.audio)
+            
+            if save.music_path != "" {
+                mpath := strings.concatenate({cfg.path_music, save.music_path})
+                defer delete(mpath)
+                audio_play_music(&state.audio, mpath)
+            }
+            if save.ambience_path != "" {
+                apath := strings.concatenate({cfg.path_ambience, save.ambience_path})
+                defer delete(apath)
+                audio_play_ambience(&state.audio, apath)
+            }
+            if save.voice_path != "" {
+                vpath := strings.concatenate({cfg.path_voice, save.voice_path})
+                defer delete(vpath)
+                audio_play_voice(&state.audio, vpath)
+            }
+            for sfx in save.sfx_paths {
+                spath := strings.concatenate({cfg.path_sfx, sfx})
+                defer delete(spath)
+                audio_play_sfx(&state.audio, spath)
+            }
+
+            // Restore choice state (menu does NOT auto-select)
+            choice_clear(state)
+            state.choice.selected = 0
+            if len(save.choice_options) > 0 {
+                for opt in save.choice_options {
+                    append(&state.choice.options, Choice_Option{
+                        text  = strings.clone(opt.text),
+                        label = strings.clone(opt.label),
+                    })
+                }
+                max_idx := len(state.choice.options) - 1
+                sel := int(save.choice_selected)
+                if sel < 0 do sel = 0
+                if sel > max_idx do sel = max_idx
+                state.choice.selected = sel
+            }
+            state.choice.active = save.choice_active && len(state.choice.options) > 0
+            if state.choice.active {
+                s.waiting = true
             }
             
             // If we loaded onto a 'waiting' command (like say), we should be waiting

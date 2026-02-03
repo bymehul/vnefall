@@ -12,6 +12,7 @@ These are loaded once at startup and freed once at shutdown.
 | Textures | `texture.odin` | `texture_cleanup()` |
 | Font Atlas | `font.odin` | `font_cleanup()` |
 | Config Strings | `config.odin` | `config_cleanup()` |
+| Audio Cache (Optional) | `audio.odin` | `audio_cleanup()` |
 
 ### 2. Script State (Medium-Lived)
 These are loaded when a script is run and freed when the game ends.
@@ -33,6 +34,9 @@ Scenes manage assets for each chapter, freeing them when switching.
 | Per-scene textures | `scene.odin` | `scene_cleanup()` |
 | Manifests | `manifest.odin` | `manifest_cleanup()` |
 | Scene manager | `scene.odin` | `scene_system_cleanup()` |
+| Scene audio (music/ambience/SFX/voice) | `audio.odin` | `audio_flush_scene()` |
+
+**Shared Asset Preservation**: When switching scenes, assets that exist in both the current and next scene (textures and audio) are retained to avoid double-loading and reduce VRAM/heap spikes.
 
 ### 4. Character State (Global Cache / "Backstage")
 Characters remain loaded across scene transitions using the Dharana model.
@@ -45,7 +49,7 @@ Characters remain loaded across scene transitions using the Dharana model.
 **Note**: `g_characters` is a global map (The "Backstage"). 
 - **Auto-Flush**: When a character is hidden with `char Alice hide`, they are **immediately deleted** from RAM.
 - **Chapter Purge**: All active characters are flushed when jumping to a new script file via `jump_file`. 
-- **Persistence**: Visible characters are automatically snapshotted into `sthiti` save files (v4) and restored on load.
+- **Persistence**: Visible characters are automatically snapshotted into `sthiti` save files (v6) and restored on load.
 
 ### 5. Transient Strings (Short-Lived)
 These are created on-the-fly and deleted immediately after use.

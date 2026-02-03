@@ -31,10 +31,12 @@ If you want to add a command like `shake_screen` or `show_character`:
 - **Branching Logic**: Scripts support labels, jumps, and player choices. A pre-processing step builds a label-to-index map for instant navigation.
 - **Renderer (`renderer.odin`)**: Uses a single shader and a single buffer. We draw everything as textured quads (2 triangles, 6 vertices).
 - **Text (`font.odin`)**: Uses `stb_truetype` to bake a font into a single atlas texture.
-- **Audio (`audio.odin`)**: A thin wrapper around `SDL_mixer`.
+- **Audio (`audio.odin`)**: A thin wrapper around `SDL_mixer` with separate channels for **Music**, **Ambience**, **SFX**, and **Voice**. Audio assets are prefetched via manifests during `scene_next`.
 - **Scene System (`scene.odin`, `manifest.odin`)**: Manages asset loading per-scene. Automatically generates manifests and supports background prefetching for zero-stutter transitions.
+- **Shared Asset Reuse**: When switching scenes, assets present in both current and next manifests (textures + audio) are preserved to avoid double-loading and reduce memory spikes.
+- **Loading Screen**: If a new script doesn’t set a `bg` immediately, the engine can show a configurable loading image (`loading_image` in `config.vnef`).
 - **Character System (`character.odin`)**: A singleton-style manager for sprites. Supports **Scale-to-Fit** (80% vertical height) and **Z-Order** sorted drawing.
-- **Persistence (`sthiti/`)**: Uses Sthiti-DB v4 for binary state serialization. Saves all global variables (integers and strings), current textbox text, active character states, script position, and environment.
+- **Persistence (`sthiti/`)**: Uses Sthiti-DB v6 for binary state serialization. Saves all global variables (integers and strings), current textbox text, active character states, script position, environment, audio state, and active choice menus.
 
 ## Graphics API Strategy
 We use **OpenGL 3.3** for its high compatibility and simplicity. While Apple has deprecated OpenGL, it remains the most portable "starter" API for 2D engines.
@@ -57,7 +59,7 @@ We use **OpenGL 3.3** for its high compatibility and simplicity. While Apple has
 - **Script Buffer**: We read the entire `.vnef` file into memory. For massive stories, we might eventually need a streaming parser.
 
 ## Troubleshooting
-- **No Sound**: Ensure `SDL2_mixer` is installed and the file path starts with `assets/music/`.
+- **No Sound**: Ensure `SDL2_mixer` is installed, the file exists under `assets/music/`, `assets/ambience/`, `assets/sfx/`, or `assets/voice/`, and that `settings.vnef`/`volume` levels aren’t set to `0.0`.
 - **Corrupted Textures**: OpenGL needs correct pixel alignment. We use `gl.PixelStorei(gl.UNPACK_ALIGNMENT, 1)` to handle non-power-of-two widths.
 
 ## V1.1.0+ Features

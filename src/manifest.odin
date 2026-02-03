@@ -22,6 +22,9 @@ Manifest :: struct {
     backgrounds: [dynamic]string,
     sprites:     [dynamic]string,
     music:       [dynamic]string,
+    ambience:    [dynamic]string,
+    sfx:         [dynamic]string,
+    voice:       [dynamic]string,
 }
 
 // Generate a manifest by scanning a script file for asset commands
@@ -103,10 +106,46 @@ manifest_generate :: proc(script_path: string) -> (Manifest, bool) {
             if !contains_string(m.music[:], asset_full) {
                 append(&m.music, strings.clone(asset_full))
             }
+        } else if strings.has_prefix(trimmed, "ambience ") {
+            asset := strings.trim_space(trimmed[9:])
+            asset = strings.trim(asset, "\"")
+            
+            ext := ".ogg"
+            if strings.contains(asset, ".") do ext = ""
+            asset_full := strings.concatenate({asset, ext})
+            defer delete(asset_full)
+            
+            if !contains_string(m.ambience[:], asset_full) {
+                append(&m.ambience, strings.clone(asset_full))
+            }
+        } else if strings.has_prefix(trimmed, "sfx ") {
+            asset := strings.trim_space(trimmed[4:])
+            asset = strings.trim(asset, "\"")
+            
+            ext := ".ogg"
+            if strings.contains(asset, ".") do ext = ""
+            asset_full := strings.concatenate({asset, ext})
+            defer delete(asset_full)
+            
+            if !contains_string(m.sfx[:], asset_full) {
+                append(&m.sfx, strings.clone(asset_full))
+            }
+        } else if strings.has_prefix(trimmed, "voice ") {
+            asset := strings.trim_space(trimmed[6:])
+            asset = strings.trim(asset, "\"")
+            
+            ext := ".ogg"
+            if strings.contains(asset, ".") do ext = ""
+            asset_full := strings.concatenate({asset, ext})
+            defer delete(asset_full)
+            
+            if !contains_string(m.voice[:], asset_full) {
+                append(&m.voice, strings.clone(asset_full))
+            }
         }
     }
     
-    total := len(m.backgrounds) + len(m.sprites) + len(m.music)
+    total := len(m.backgrounds) + len(m.sprites) + len(m.music) + len(m.ambience) + len(m.sfx) + len(m.voice)
     fmt.printf("[manifest] Generated manifest for %s: %d assets\n", script_path, total)
     
     return m, true
@@ -141,6 +180,15 @@ manifest_load :: proc(path: string) -> (Manifest, bool) {
         } else if strings.has_prefix(trimmed, "music ") {
             asset := strings.trim_space(trimmed[6:])
             append(&m.music, strings.clone(asset))
+        } else if strings.has_prefix(trimmed, "ambience ") {
+            asset := strings.trim_space(trimmed[9:])
+            append(&m.ambience, strings.clone(asset))
+        } else if strings.has_prefix(trimmed, "sfx ") {
+            asset := strings.trim_space(trimmed[4:])
+            append(&m.sfx, strings.clone(asset))
+        } else if strings.has_prefix(trimmed, "voice ") {
+            asset := strings.trim_space(trimmed[6:])
+            append(&m.voice, strings.clone(asset))
         }
     }
     
@@ -175,6 +223,24 @@ manifest_save :: proc(m: ^Manifest, path: string) -> bool {
         strings.write_string(&b, "\n")
     }
     
+    for am in m.ambience {
+        strings.write_string(&b, "ambience ")
+        strings.write_string(&b, am)
+        strings.write_string(&b, "\n")
+    }
+    
+    for sfx in m.sfx {
+        strings.write_string(&b, "sfx ")
+        strings.write_string(&b, sfx)
+        strings.write_string(&b, "\n")
+    }
+    
+    for vo in m.voice {
+        strings.write_string(&b, "voice ")
+        strings.write_string(&b, vo)
+        strings.write_string(&b, "\n")
+    }
+    
     content := strings.to_string(b)
     ok := os.write_entire_file(path, transmute([]u8)content)
     return ok
@@ -189,6 +255,12 @@ manifest_cleanup :: proc(m: ^Manifest) {
     delete(m.sprites)
     for mu in m.music do delete(mu)
     delete(m.music)
+    for am in m.ambience do delete(am)
+    delete(m.ambience)
+    for sfx in m.sfx do delete(sfx)
+    delete(m.sfx)
+    for vo in m.voice do delete(vo)
+    delete(m.voice)
 }
 
 // Helper to check if a string is in a slice

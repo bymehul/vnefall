@@ -37,7 +37,7 @@ This update combines a simplified character system, Sthiti-DB persistence, and h
 ### 💾 Persistence (Sthiti-DB Integration)
 - [x] **Native Save/Load**: `save` and `load` commands using Sthiti-DB protocol.
 - [x] **Configurable Save Path**: `path_saves` in `config.vnef`.
-- [x] **Variable Retention**: All story flags saved (integers only; strings deferred).
+- [x] **Variable Retention**: All story flags saved (integers **and** strings).
 - [x] **Timestamp Support**: Save files include timestamp metadata.
 
 ### 🔢 Logic & Strings
@@ -51,12 +51,17 @@ This update combines a simplified character system, Sthiti-DB persistence, and h
 
 ---
 
-## v1.3.0: Audio Expansion (Sound & Voice)
+## v1.3.0: Audio Expansion (Sound & Voice) ✅ COMPLETE
 
-- [ ] **SFX & Voices**: Support for per-character voice clips and sound effect triggers.
-- [ ] **Audio Mixer**: Global, Music, and SFX volume channels.
-- [ ] **Volume Persistence**: Save volume levels in `config.vnef` or a separate settings file.
-- [ ] **Music Fades**: Smooth volume cross-fading when switching tracks.
+- [x] **SFX, Voices, Ambience**: Support for voice clips, sound effects, and ambient loops.
+- [x] **Audio Mixer**: Global, Music, Ambience, SFX, and Voice volume channels.
+- [x] **Volume Persistence**: Save volume levels in `settings.vnef`.
+- [x] **Music Fades**: Smooth volume cross-fading when switching tracks.
+- [x] **Scene Audio Prefetch**: `scene_next` now preloads music, ambience, SFX, and voice.
+- [x] **Audio Save/Load**: Music, ambience, voice, and active SFX are restored on load.
+- [x] **Choice Save/Load**: Active choice menus and selection highlight are restored on load.
+- [x] **Audio Stop Commands**: `music_stop`, `music_stop_fade`, and `ambience_stop`.
+- [x] **Loading Screen**: Optional `loading_image` for seamless scene transitions.
 
 ---
 
@@ -66,12 +71,13 @@ This update combines a simplified character system, Sthiti-DB persistence, and h
 - [ ] **Custom Textbox**: Support for custom PNG backgrounds and transparency controls for the dialogue box.
 - [ ] **UI Customization**: Fully customizable Choice buttons (PNG textures, hover effects).
 - [ ] **Text Effects**: Typewriter speed control, text shaking, and color tags.
+- [ ] **Opening Screen**: Optional splash/loading screen so large asset sets can preload before the first scene.
 
 ---
 
 ## v1.5.0: System & Settings (Preferences Menu)
 
-- [ ] **Settings Menu**: A pre-built, high-quality menu for Volume, Text Speed, and Display Mode.
+- [ ] **Settings Menu**: A pre-built, high-quality menu for Volume (master/music/ambience/sfx/voice), Text Speed, and Display Mode.
 - [ ] **Menu Logic**: Handling settings changes instantly without restarting the engine.
 - [ ] **Backlog**: A scrollable history window for reviewing previously read text.
 - [ ] **Auto-Advance**: Toggleable mode for automatic reading progression.

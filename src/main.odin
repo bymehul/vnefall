@@ -13,7 +13,7 @@ import "core:strings"
 import "core:mem"
 import SDL "vendor:sdl2"
 
-VERSION :: "1.2.0"
+VERSION :: "1.3.0"
 
 Choice_Option :: struct {
     text:  string,
@@ -36,6 +36,8 @@ Game_State :: struct {
     input:        Input_State,
     
     current_bg:   u32,           // OpenGL texture handle
+    loading_tex:  u32,
+    loading_active: bool,
     textbox:      Textbox_State,
     choice:       Choice_State,
 }
@@ -73,6 +75,7 @@ main :: proc() {
 
     // Load config first so we know where everything is
     config_load("config.vnef")
+    settings_load()
     
     // Check if we passed a script path, otherwise fallback to config entry
     args := os.args
@@ -172,7 +175,18 @@ main :: proc() {
         
         renderer_begin(&g.renderer, &g.window)
         
-        if g.current_bg != 0 {
+        if g.loading_active {
+            if g.loading_tex != 0 {
+                renderer_draw_fullscreen(&g.renderer, g.loading_tex)
+            } else {
+                renderer_draw_rect(&g.renderer, 0, 0, cfg.design_width, cfg.design_height, {0.02, 0.02, 0.05, 1.0})
+                msg := "Loading..."
+                tw := font_text_width(msg)
+                tx := (cfg.design_width - tw) / 2
+                ty := cfg.design_height / 2
+                renderer_draw_text(&g.renderer, msg, tx, ty, cfg.color_text)
+            }
+        } else if g.current_bg != 0 {
             renderer_draw_fullscreen(&g.renderer, g.current_bg)
         }
         
@@ -206,6 +220,8 @@ init_game :: proc(script_path: string) -> bool {
     // Audio is optional, don't crash if it fails
     if !audio_init(&g.audio) {
         fmt.eprintln("Warning: Audio init failed.")
+    } else {
+        audio_apply_settings(&g.audio)
     }
     
     // Try to get our default font
@@ -213,6 +229,18 @@ init_game :: proc(script_path: string) -> bool {
     defer delete(font_path)
     if !font_load(font_path) {
         fmt.eprintln("Warning: Could not load default font.")
+    }
+    
+    // Optional loading screen image
+    if cfg.loading_image != "" {
+        load_path := strings.concatenate({cfg.path_images, cfg.loading_image})
+        defer delete(load_path)
+        info := texture_load(load_path)
+        if info.id == 0 {
+            fmt.eprintln("Warning: Could not load loading image:", load_path)
+        } else {
+            g.loading_tex = info.id
+        }
     }
     
     // Finally, load the script file

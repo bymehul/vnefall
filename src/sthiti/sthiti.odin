@@ -5,7 +5,7 @@ import "core:fmt"
 import "core:mem"
 
 STHITI_MAGIC   :: "STHITI"
-STHITI_VERSION :: 4  // Bumped for character list support
+STHITI_VERSION :: 6  // Bumped for audio + choice state support
 
 // Variable can be int or string
 Variable :: union {
@@ -19,6 +19,11 @@ Character_Save_State :: struct {
 	sprite_path: string,
 	pos_name:    string,
 	z:           i32,
+}
+
+Choice_Option_Save :: struct {
+	text:  string,
+	label: string,
 }
 
 // The full state of a game at a specific moment
@@ -35,7 +40,9 @@ Save_State :: struct {
 	
 	// Visual/Audio environment (To resume exactly as it was)
 	bg_path:     string,        // Current background image
-	music_path:  string,        // Current playing music
+	music_path:  string,        // Current playing music (asset name)
+	ambience_path: string,      // Current ambience (asset name)
+	voice_path: string,         // Current voice clip (asset name)
 	
 	// Textbox state
 	speaker:      string,
@@ -44,6 +51,14 @@ Save_State :: struct {
 
 	// Active characters
 	characters:   [dynamic]Character_Save_State,
+
+	// Active SFX (asset names)
+	sfx_paths:    [dynamic]string,
+
+	// Choice menu state
+	choice_active:  bool,
+	choice_selected: i32,
+	choice_options: [dynamic]Choice_Option_Save,
 }
 
 // Prepare a fresh save struct
@@ -59,6 +74,8 @@ save_state_destroy :: proc(s: ^Save_State) {
 	delete(s.script_path)
 	delete(s.bg_path)
 	delete(s.music_path)
+	delete(s.ambience_path)
+	delete(s.voice_path)
 	delete(s.speaker)
 	delete(s.textbox_text)
 	for k, v in s.variables {
@@ -73,6 +90,15 @@ save_state_destroy :: proc(s: ^Save_State) {
 		delete(c.pos_name)
 	}
 	delete(s.characters)
+
+	for sfx in s.sfx_paths do delete(sfx)
+	delete(s.sfx_paths)
+
+	for opt in s.choice_options {
+		delete(opt.text)
+		delete(opt.label)
+	}
+	delete(s.choice_options)
 }
 
 // --- FILE I/O ---

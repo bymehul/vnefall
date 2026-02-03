@@ -23,6 +23,10 @@ serialize_save_state :: proc(s: Save_State) -> []u8 {
 	append_i32(&buf, s.script_ip)
 	append_string(&buf, s.bg_path)
 	append_string(&buf, s.music_path)
+	if s.version >= 5 {
+		append_string(&buf, s.ambience_path)
+		append_string(&buf, s.voice_path)
+	}
 	append_string(&buf, s.speaker)
 	append_string(&buf, s.textbox_text)
 	append_bool(&buf, s.textbox_vis)
@@ -48,6 +52,25 @@ serialize_save_state :: proc(s: Save_State) -> []u8 {
 			append_string(&buf, c.sprite_path)
 			append_string(&buf, c.pos_name)
 			append_i32(&buf, c.z)
+		}
+	}
+	
+	// 5. SFX Paths (v5)
+	if s.version >= 5 {
+		append_u32(&buf, u32(len(s.sfx_paths)))
+		for sfx in s.sfx_paths {
+			append_string(&buf, sfx)
+		}
+	}
+	
+	// 6. Choice State (v6)
+	if s.version >= 6 {
+		append_bool(&buf, s.choice_active)
+		append_i32(&buf, s.choice_selected)
+		append_u32(&buf, u32(len(s.choice_options)))
+		for opt in s.choice_options {
+			append_string(&buf, opt.text)
+			append_string(&buf, opt.label)
 		}
 	}
 	
@@ -102,6 +125,13 @@ deserialize_save_state :: proc(data: []u8) -> (s: Save_State, ok: bool) {
 	s.script_ip = read_i32(data, &ptr)
 	s.bg_path = read_string(data, &ptr)
 	s.music_path = read_string(data, &ptr)
+	if s.version >= 5 {
+		s.ambience_path = read_string(data, &ptr)
+		s.voice_path = read_string(data, &ptr)
+	} else {
+		s.ambience_path = ""
+		s.voice_path = ""
+	}
 	s.speaker = read_string(data, &ptr)
 	s.textbox_text = read_string(data, &ptr)
 	s.textbox_vis = read_bool(data, &ptr)
@@ -136,6 +166,33 @@ deserialize_save_state :: proc(data: []u8) -> (s: Save_State, ok: bool) {
 			c.z = read_i32(data, &ptr)
 			append(&s.characters, c)
 		}
+	}
+	
+	// 5. SFX Paths (v5)
+	if s.version >= 5 {
+		sfx_count := read_u32(data, &ptr)
+		s.sfx_paths = make([dynamic]string)
+		for _ in 0..<sfx_count {
+			sfx := read_string(data, &ptr)
+			append(&s.sfx_paths, sfx)
+		}
+	}
+	
+	// 6. Choice State (v6)
+	if s.version >= 6 {
+		s.choice_active = read_bool(data, &ptr)
+		s.choice_selected = read_i32(data, &ptr)
+		opt_count := read_u32(data, &ptr)
+		s.choice_options = make([dynamic]Choice_Option_Save)
+		for _ in 0..<opt_count {
+			o: Choice_Option_Save
+			o.text = read_string(data, &ptr)
+			o.label = read_string(data, &ptr)
+			append(&s.choice_options, o)
+		}
+	} else {
+		s.choice_active = false
+		s.choice_selected = 0
 	}
 	
 	return s, true
