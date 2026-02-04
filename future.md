@@ -98,6 +98,16 @@ This update combines a simplified character system, Sthiti-DB persistence, and h
 
 ---
 
+## v1.7.0: Script & UI Parity Pass (Ren'Py-Inspired)
+
+- [ ] **Call/Return Stack**: `call` and `return` commands to support subroutines and modular story flow.
+- [ ] **Screen System**: Declarative UI screens for save/load, settings, main menu, and galleries.
+- [ ] **Show/Hide Layers**: Layered show/hide with named layers and z-order stacks.
+- [ ] **Transform System (Lite)**: A small animation/transform DSL inspired by ATL for motion, zoom, and easing.
+- [ ] **Rollback Spine**: Engine-level checkpoints to enable rollback and dialog history.
+
+---
+
 ## v2: Future Horizons
 
 - [ ] **Layered Sprite Model**: Full `base` + `outfit` + `expression` compositing.

@@ -96,7 +96,7 @@ character_show :: proc(name: string, sprite_path: string, pos_name: string, z: i
         return
     }
     
-    // Scale to fit within 80% of screen height (like Ren'Py)
+    // Scale to fit within 80% of screen height
     max_height := cfg.design_height * 0.80
     original_w := f32(info.width)
     original_h := f32(info.height)
