@@ -13,7 +13,7 @@ import "core:strings"
 import "core:mem"
 import SDL "vendor:sdl2"
 
-VERSION :: "1.4.0"
+VERSION :: "1.4.1"
 
 Choice_Option :: struct {
     text:  string,

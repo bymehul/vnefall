@@ -20,6 +20,13 @@ All notable changes to Vnefall will be documented in this file.
 - **Texture Cache Safety**: Scene cleanup now releases texture cache entries to avoid invalid GL binds.
 - **Memory**: Fixed leaks in textbox segments and legacy `if jump` parsing.
 
+## [1.4.1] - 2026-02-04
+### Added
+- **Character Transitions**: All `with` transition types now have character equivalents.
+
+### Fixed
+- **UI Config**: Removed duplicate `char_transition` entry in `demo/ui.vnef`.
+
 ## [1.3.0] - 2026-02-03
 ### Added
 - **Audio Expansion**: `sfx`, `voice`, `volume`, and `music_fade` script commands.

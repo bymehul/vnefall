@@ -31,7 +31,7 @@ char Alice show happy at left with slide 250
 
 Hides the character. By default, it uses the transition duration from `demo/ui.vnef` (`char_fade_ms`).  
 You can override the next show/hide with `with <type> [ms]` (e.g., `with slide 250`).  
-For characters, `fade`, `slide`, `shake`, and `none` are distinct; other types fall back to a fade.
+All `with` transition types are supported for characters (fade, wipe, slide, dissolve, zoom, blur, flash, shake, none).
 
 Default character transition type comes from `char_transition` in `demo/ui.vnef`.
 Transition durations come from `char_fade_ms`, `char_slide_ms`, and `char_shake_ms` in `demo/ui.vnef`.

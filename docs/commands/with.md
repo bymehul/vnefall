@@ -42,7 +42,7 @@ bg room.png
 
 ## Notes
 - `with` is **one-shot**. It applies to the next `bg` or `char` command only, then resets.
-- Character transitions are visually distinct for `fade`, `slide`, `shake`, and `none`. Other types fall back to a fade for characters.
+- Character transitions support all `with` types (fade, wipe, slide, dissolve, zoom, blur, flash, shake, none).
 - `blur` is a soft placeholder until a real blur shader is implemented.
 - If you don’t use `with`, the engine uses the defaults in `demo/ui.vnef`.
 - You can also inline it on character commands: `char Alice show happy at left with slide 250`.

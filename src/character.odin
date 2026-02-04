@@ -21,6 +21,7 @@ Character :: struct {
     visible:    bool,
     alpha:      f32,
     fade_active: bool,
+    fade_kind:  Transition_Kind,
     fade_dir:   f32,
     fade_duration: f32,
     pending_remove: bool,
@@ -131,6 +132,10 @@ character_show :: proc(name: string, sprite_path: string, pos_name: string, z: i
     use_slide := t_kind == .Slide
     use_shake := t_kind == .Shake
     use_fade := !use_slide && t_kind != .None
+    fade_kind := t_kind
+    if fade_kind == .Shake {
+        fade_kind = .Fade
+    }
 
     if char, exists := g_characters[name]; exists {
         if char.sprite_path != "" do delete(char.sprite_path)
@@ -152,6 +157,7 @@ character_show :: proc(name: string, sprite_path: string, pos_name: string, z: i
         char.slide_duration = 0
         char.shake_active = false
         char.shake_duration = 0
+        char.fade_kind = .None
         if use_slide && fade_ms > 0 {
             start_x := character_offscreen_x(target_x, final_w)
             char.pos_x = start_x
@@ -166,6 +172,7 @@ character_show :: proc(name: string, sprite_path: string, pos_name: string, z: i
             char.fade_active = true
             char.fade_dir = 1
             char.fade_duration = fade_ms
+            char.fade_kind = fade_kind
         } else {
             char.alpha = 1
         }
@@ -191,6 +198,7 @@ character_show :: proc(name: string, sprite_path: string, pos_name: string, z: i
             visible = true,
             alpha   = 1,
         }
+        new_char.fade_kind = .None
         if use_slide && fade_ms > 0 {
             start_x := character_offscreen_x(target_x, final_w)
             new_char.pos_x = start_x
@@ -204,6 +212,7 @@ character_show :: proc(name: string, sprite_path: string, pos_name: string, z: i
             new_char.fade_active = true
             new_char.fade_dir = 1
             new_char.fade_duration = fade_ms
+            new_char.fade_kind = fade_kind
         }
         if use_shake && fade_ms > 0 {
             new_char.shake_active = true
@@ -245,12 +254,15 @@ character_hide :: proc(name: string) {
             char.slide_to_x = target_x
             char.pending_remove = true
             char.fade_active = false
+            char.fade_kind = .None
             char.alpha = 1
             g_characters[name] = char
         } else if fade_ms > 0 {
             char.fade_active = true
             char.fade_dir = -1
             char.fade_duration = fade_ms
+            char.fade_kind = t_kind
+            if char.fade_kind == .Shake do char.fade_kind = .Fade
             char.pending_remove = true
             char.slide_active = false
             if t_kind == .Shake {
@@ -310,12 +322,84 @@ character_draw_all :: proc(r: ^Renderer) {
             shake_x = math.sin(char.shake_t * 60) * amp
             shake_y = math.cos(char.shake_t * 53) * amp
         }
-        x := (char.pos_x + shake_x) - (w / 2)
-        y := (char.pos_y + shake_y) - (h / 2)
-        
+        cx := char.pos_x + shake_x
+        cy := char.pos_y + shake_y
+
         alpha := char.alpha
-        if alpha <= 0 do continue
-        renderer_draw_texture_tinted(r, char.texture, x, y, w, h, {1, 1, 1, alpha})
+        scale: f32 = 1.0
+        do_wipe := false
+        wipe_t: f32 = 0
+        flash_alpha: f32 = 0
+
+        if char.fade_active {
+            t := alpha
+            if char.fade_dir < 0 {
+                t = 1 - alpha
+            }
+            if t < 0 do t = 0
+            if t > 1 do t = 1
+            eased := t * t * (3 - 2*t)
+
+            switch char.fade_kind {
+            case .Fade:
+                alpha = alpha
+            case .Dissolve:
+                alpha = eased
+                if char.fade_dir < 0 do alpha = 1 - eased
+            case .Blur:
+                alpha = eased
+                if char.fade_dir < 0 do alpha = 1 - eased
+                scale = 1.0 + (1 - eased) * 0.02
+            case .Zoom:
+                if char.fade_dir >= 0 {
+                    alpha = eased
+                    scale = 0.9 + 0.1*eased
+                } else {
+                    alpha = 1 - eased
+                    scale = 1.0 + 0.05*eased
+                }
+            case .Flash:
+                alpha = eased
+                if char.fade_dir < 0 do alpha = 1 - eased
+                flash_alpha = 1 - abs(2*t-1)
+                flash_alpha *= 0.7
+            case .Wipe:
+                do_wipe = true
+                wipe_t = eased
+            case .None:
+                alpha = alpha
+            case .Slide:
+                alpha = alpha
+            case .Shake:
+                alpha = alpha
+            }
+        }
+
+        if alpha <= 0 && !do_wipe do continue
+
+        draw_w := w * scale
+        draw_h := h * scale
+        x := cx - (draw_w / 2)
+        y := cy - (draw_h / 2)
+
+        if do_wipe {
+            t := wipe_t
+            if t < 0 do t = 0
+            if t > 1 do t = 1
+            if char.fade_dir < 0 {
+                t = 1 - t
+            }
+            draw_w = w * t
+            if draw_w > 0 {
+                uv1 := Vec2{t, 1}
+                renderer_draw_texture_tinted_uv(r, char.texture, x, y, draw_w, draw_h, Vec2{0, 0}, uv1, {1, 1, 1, 1})
+            }
+        } else {
+            renderer_draw_texture_tinted(r, char.texture, x, y, draw_w, draw_h, {1, 1, 1, alpha})
+            if flash_alpha > 0 {
+                renderer_draw_texture_tinted(r, char.texture, x, y, draw_w, draw_h, {1, 1, 1, flash_alpha})
+            }
+        }
     }
 }
 
