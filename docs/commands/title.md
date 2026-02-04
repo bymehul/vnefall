@@ -17,5 +17,5 @@ say Alice "Where am I?"
 ```
 
 ## Notes
-- This overrules the `window_title` set in `config.vnef`.
+- This overrules the `window_title` set in `demo/config.vnef`.
 - Useful for indicating story progress or location.

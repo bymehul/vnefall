@@ -9,7 +9,9 @@ Input_State :: struct {
     select_pressed:  bool,
     mouse_x:         i32,
     mouse_y:         i32,
-    mouse_clicked:   bool,
+    mouse_down:      bool,
+    mouse_pressed:   bool,
+    mouse_released:  bool,
     number_pressed:  int, // 1-9 if pressed, otherwise 0
 }
 
@@ -18,7 +20,8 @@ input_poll :: proc(input: ^Input_State, running: ^bool) {
     input.up_pressed      = false
     input.down_pressed    = false
     input.select_pressed  = false
-    input.mouse_clicked   = false
+    input.mouse_pressed   = false
+    input.mouse_released  = false
     input.number_pressed  = 0
     
     sdl2.GetMouseState(&input.mouse_x, &input.mouse_y)
@@ -48,7 +51,14 @@ input_poll :: proc(input: ^Input_State, running: ^bool) {
             if ev.button.button == sdl2.BUTTON_LEFT {
                 input.advance_pressed = true
                 input.select_pressed  = true
-                input.mouse_clicked   = true
+                input.mouse_pressed   = true
+                input.mouse_down      = true
+            }
+            
+        case .MOUSEBUTTONUP:
+            if ev.button.button == sdl2.BUTTON_LEFT {
+                input.mouse_released = true
+                input.mouse_down     = false
             }
         }
     }

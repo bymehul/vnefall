@@ -1,4 +1,4 @@
-title "Inkframe v1.3.0: Audio Expansion Demo"
+title "Inkframe v1.4.0: Visual + UI Demo"
 
 # --- Setup ---
 set player_name = "Zen"
@@ -7,6 +7,7 @@ set met_kaito = false
 
 # --- The Start ---
 scene "demo_game"
+with fade 500
 bg "room.png"
 
 # Audio: music + ambience + sfx + voice
@@ -18,9 +19,14 @@ voice "demo_voice.wav"
 volume master 0.8
 save "auto_start"
 
+with fade 250
 char Emi show happy at center z 5
-say Emi "Welcome to Inkframe v1.3.0!"
-say Emi "We now support music, ambience, SFX, and voice."
+say Emi "Welcome to Inkframe v1.4.0!"
+say Emi "UI now comes from ui.vnef, and my colors from char.vnef."
+say Emi "We still support music, ambience, SFX, and voice."
+say Emi "Inline tags: {color=0xFF66CCFF}color{/color} and {shake}shake{/shake}."
+say Emi "Transitions are opt-in now: use 'with fade', 'with slide', or other types."
+say Emi [speed=0.02] "This line types slower (per-line speed override)."
 
 # Volume controls (0.0 - 1.0)
 volume music 0.6
@@ -31,6 +37,8 @@ say Emi "Volumes set. These persist in settings.vnef."
 
 choice_add "Talk to Emi" talk_emi
 choice_add "Go to the Lounge" go_lounge
+choice_add "Transition Showcase" transition_showcase
+choice_add "Logic + Variables" logic_test
 choice_add "Test Audio Fades + Save" test_fades
 choice_add "Test Stops (Silence)" test_stops
 choice_add "Save Progress (v6)" save_game
@@ -48,6 +56,7 @@ label talk_emi:
     jump story_cont
 
 label go_lounge:
+    with wipe 450
     bg "lounge.jpg"
     char Emi show normal at left z 5
     say Emi "The lounge is quiet today."
@@ -61,6 +70,79 @@ label go_lounge:
     
     char Kaito hide
     say Emi "When we hide a character, the engine frees their memory."
+    jump story_cont
+
+label transition_showcase:
+    say Emi "Quick tour of the new transitions."
+
+    with slide 250
+    bg "apartment.png"
+    say Emi "Slide (good for entrances)."
+
+    with dissolve 500
+    bg "apartment_night.png"
+    say Emi "Dissolve (soft cross-fade)."
+
+    with zoom 300
+    bg "bedroom.png"
+    say Emi "Zoom (dramatic emphasis)."
+
+    with blur 400
+    bg "bedroom_night.png"
+    say Emi "Blur (dreamy vibe)."
+
+    with flash 120
+    bg "night.png"
+    say Emi "Flash (impact moments)."
+
+    with shake 180
+    bg "room.png"
+    say Emi "Shake (camera-style impact)."
+
+    say Emi "Characters can slide too:"
+    with slide 250
+    char Emi show happy at left z 5
+    say Emi "Sliding in!"
+    with slide 250
+    char Emi hide
+
+    say Emi "Shake also works on characters:"
+    char Emi show normal at center z 5 with shake 200
+    say Emi "Shaky entrance."
+    char Emi hide with shake 200
+
+    jump story_cont
+
+label logic_test:
+    say Emi "Let's test variables, math, and conditionals."
+    set health = health + 5
+    set nickname = "Star"
+    say Emi "Health is now ${health}."
+    say Emi "Nickname set to ${nickname}."
+
+    if (health >= 105) {
+        say Emi "Health check passed (>= 105)."
+    } else {
+        say Emi "Health check failed."
+    }
+
+    if (nickname == "Star") {
+        say Emi "String comparison works too."
+    }
+
+    say Emi "I'll pause using the wait command."
+    wait
+    say Emi "Paused and resumed."
+
+    # Legacy if-jump syntax
+    if met_kaito jump kaito_note
+    say Emi "Legacy if-jump skipped (you haven't met Kaito yet)."
+    jump logic_done
+
+label kaito_note:
+    say Emi "Legacy if-jump triggered because you met Kaito."
+
+label logic_done:
     jump story_cont
 
 label test_fades:
@@ -105,6 +187,7 @@ label load_audio:
     jump story_cont
 
 label story_cont:
+    with none
     bg "train.png"
     scene_next "demo_epilogue"
     

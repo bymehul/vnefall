@@ -2,6 +2,24 @@
 
 All notable changes to Vnefall will be documented in this file.
 
+## [1.4.0] - 2026-02-04
+### Added
+- **UI Config Split**: New `demo/ui.vnef` (UI styling + transitions) and `demo/char.vnef` (per-character name/text colors).
+- **VNEUI Layer**: Textbox + choice menus now render through VNEUI for consistent theming.
+- **Cinematic Transitions**: `with fade|wipe|slide|dissolve|zoom|blur|flash|shake|none` plus defaults in `ui.vnef`.
+- **Character Transitions**: Fade, slide, and shake on show/hide with configurable durations.
+- **Text Effects**: Inline `{color=...}` and `{shake}` tags plus per-line `[speed=...]` overrides.
+- **Textbox Placement**: `textbox_anchor = bottom|top|center`.
+- **Expanded Demo**: Updated demo script to exercise all major commands, effects, and transitions.
+
+### Changed
+- **Demo Layout**: Demo assets/config moved under `demo/` for cleaner project roots.
+- **Transition Overrides**: `with` now applies to the next `bg` **or** `char` (one-shot).
+
+### Fixed
+- **Texture Cache Safety**: Scene cleanup now releases texture cache entries to avoid invalid GL binds.
+- **Memory**: Fixed leaks in textbox segments and legacy `if jump` parsing.
+
 ## [1.3.0] - 2026-02-03
 ### Added
 - **Audio Expansion**: `sfx`, `voice`, `volume`, and `music_fade` script commands.

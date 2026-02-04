@@ -13,7 +13,7 @@ import "core:strings"
 import "core:mem"
 import SDL "vendor:sdl2"
 
-VERSION :: "1.3.0"
+VERSION :: "1.4.0"
 
 Choice_Option :: struct {
     text:  string,
@@ -36,16 +36,29 @@ Game_State :: struct {
     input:        Input_State,
     
     current_bg:   u32,           // OpenGL texture handle
+    bg_transition: BG_Transition,
     loading_tex:  u32,
     loading_active: bool,
+    textbox_tex:  u32,
+    choice_tex_idle: u32,
+    choice_tex_hov:  u32,
     textbox:      Textbox_State,
     choice:       Choice_State,
+    last_tick:    u32,
 }
 
 Textbox_State :: struct {
     visible:      bool,
     speaker:      string,
     text:         string,
+    reveal_count: int,
+    reveal_total: int,
+    reveal_accum: f32,
+    segments:     [dynamic]Text_Segment,
+    shown_segments: [dynamic]Text_Segment,
+    shake:        bool,
+    speed_override: f32,
+    speed_override_active: bool,
 }
 
 // Global state to keep things simple for v1
@@ -74,7 +87,25 @@ main :: proc() {
     }
 
     // Load config first so we know where everything is
-    config_load("config.vnef")
+    config_path := "config.vnef"
+    base_dir := ""
+    if os.is_file("demo/config.vnef") {
+        config_path = "demo/config.vnef"
+        base_dir = "demo/"
+    }
+    config_load(config_path)
+
+    ui_path := strings.concatenate({base_dir, "ui.vnef"})
+    defer delete(ui_path)
+    ui_config_load(ui_path)
+
+    char_path := strings.concatenate({base_dir, "char.vnef"})
+    defer delete(char_path)
+    char_registry_load(char_path)
+
+    settings_path := strings.concatenate({base_dir, "settings.vnef"})
+    defer delete(settings_path)
+    settings_set_path(settings_path)
     settings_load()
     
     // Check if we passed a script path, otherwise fallback to config entry
@@ -96,76 +127,27 @@ main :: proc() {
     
     // Game loop
     for g.running {
+        now := SDL.GetTicks()
+        dt  := f32(now - g.last_tick) / 1000.0
+        g.last_tick = now
+
         input_poll(&g.input, &g.running)
+        textbox_update(&g.textbox, dt)
+        bg_transition_update(&g, dt)
+        character_update(dt)
         
         if g.choice.active {
-            // Translate mouse to virtual coordinates
-            mx := f32(g.input.mouse_x) * (cfg.design_width / f32(g.window.width))
-            my := f32(g.input.mouse_y) * (cfg.design_height / f32(g.window.height))
-            
-            // Re-calculate button layout (same as in renderer)
-            count := len(g.choice.options)
-            button_w := cfg.choice_w
-            button_h := cfg.choice_h
-            spacing  := cfg.choice_spacing
-            total_h  := f32(count) * button_h + f32(count - 1) * spacing
-            start_y  := (cfg.design_height - total_h) / 2
-            bx       := (cfg.design_width - button_w) / 2
-            
-            // Check mouse hover
-            hovered_idx := -1
-            for i in 0..<count {
-                by := start_y + f32(i) * (button_h + spacing)
-                if mx >= bx && mx <= bx + button_w && my >= by && my <= by + button_h {
-                    g.choice.selected = i
-                    hovered_idx = i
-                    break
-                }
-            }
-
-            if g.input.up_pressed {
-                g.choice.selected = max(0, g.choice.selected - 1)
-            }
-            if g.input.down_pressed {
-                g.choice.selected = min(len(g.choice.options) - 1, g.choice.selected + 1)
-            }
-            
-            if g.input.number_pressed > 0 && g.input.number_pressed <= count {
-                g.choice.selected = g.input.number_pressed - 1
-                g.input.select_pressed = true
-            }
-            if g.input.select_pressed {
-                // If this was a mouse click, we MUST be hovering over the button
-                if !g.input.mouse_clicked || (g.input.mouse_clicked && hovered_idx != -1) {
-                    choice := g.choice.options[g.choice.selected]
-                    target_label := strings.clone(choice.label)
-                    defer delete(target_label)
-                    
-                    choice_clear(&g)
-                    g.choice.active = false
-                    
-                    if target, ok := g.script.labels[target_label]; ok {
-                        g.script.ip = target
-                        g.script.waiting = false
-                        g.textbox.visible = false
-                    }
-                }
-            }
-            
             // Keyboard shortcuts 1-9
             np := g.input.number_pressed
             if np > 0 && np <= len(g.choice.options) {
-                target_label := g.choice.options[np-1].label
-                if target, ok := g.script.labels[target_label]; ok {
-                    choice_clear(&g)
-                    g.choice.active = false
-                    g.script.ip = target
-                    g.script.waiting = false
-                    g.textbox.visible = false
-                }
+                choice_apply(&g, np-1)
             }
         } else if g.input.advance_pressed {
-            script_advance(&g.script, &g)
+            if g.textbox.visible && !textbox_is_revealed(&g.textbox) {
+                textbox_reveal_all(&g.textbox)
+            } else {
+                script_advance(&g.script, &g)
+            }
         }
         
         // IP stays here until the user clicks to advance
@@ -184,21 +166,17 @@ main :: proc() {
                 tw := font_text_width(msg)
                 tx := (cfg.design_width - tw) / 2
                 ty := cfg.design_height / 2
-                renderer_draw_text(&g.renderer, msg, tx, ty, cfg.color_text)
+                renderer_draw_text(&g.renderer, msg, tx, ty, ui_cfg.text_color)
             }
+        } else if g.bg_transition.active {
+            bg_transition_draw(&g, &g.renderer)
         } else if g.current_bg != 0 {
             renderer_draw_fullscreen(&g.renderer, g.current_bg)
         }
         
         character_draw_all(&g.renderer)
         
-        if g.textbox.visible {
-            renderer_draw_textbox(&g.renderer, g.textbox.speaker, g.textbox.text)
-        }
-        
-        if g.choice.active {
-            renderer_draw_choice_menu(&g.renderer, g.choice.options, g.choice.selected)
-        }
+        ui_layer_build_and_render(&g, &g.renderer, &g.window, dt)
         
         renderer_end(&g.renderer, &g.window)
     }
@@ -230,10 +208,13 @@ init_game :: proc(script_path: string) -> bool {
     if !font_load(font_path) {
         fmt.eprintln("Warning: Could not load default font.")
     }
+
+    ui_layer_init()
+    g.bg_transition.active = false
     
     // Optional loading screen image
-    if cfg.loading_image != "" {
-        load_path := strings.concatenate({cfg.path_images, cfg.loading_image})
+    if ui_cfg.loading_image != "" {
+        load_path := strings.concatenate({cfg.path_images, ui_cfg.loading_image})
         defer delete(load_path)
         info := texture_load(load_path)
         if info.id == 0 {
@@ -241,6 +222,26 @@ init_game :: proc(script_path: string) -> bool {
         } else {
             g.loading_tex = info.id
         }
+    }
+
+    // Optional UI textures
+    if ui_cfg.textbox_image != "" {
+        path := strings.concatenate({cfg.path_images, ui_cfg.textbox_image})
+        defer delete(path)
+        info := texture_load(path)
+        if info.id != 0 do g.textbox_tex = info.id
+    }
+    if ui_cfg.choice_image_idle != "" {
+        path := strings.concatenate({cfg.path_images, ui_cfg.choice_image_idle})
+        defer delete(path)
+        info := texture_load(path)
+        if info.id != 0 do g.choice_tex_idle = info.id
+    }
+    if ui_cfg.choice_image_hov != "" {
+        path := strings.concatenate({cfg.path_images, ui_cfg.choice_image_hov})
+        defer delete(path)
+        info := texture_load(path)
+        if info.id != 0 do g.choice_tex_hov = info.id
     }
     
     // Finally, load the script file
@@ -253,6 +254,7 @@ init_game :: proc(script_path: string) -> bool {
     scene_init()
     character_init()
     g_scenes.current = scene_load_sync(script_path)
+    g.last_tick = SDL.GetTicks()
     
     g.running = true
     return true
@@ -261,12 +263,16 @@ init_game :: proc(script_path: string) -> bool {
 cleanup_game :: proc() {
     choice_clear(&g)
     delete(g.choice.options)
-    delete(g.textbox.text)
+    textbox_destroy(&g.textbox)
     script_destroy(&g.script)
     character_cleanup()
     scene_system_cleanup()
     audio_cleanup(&g.audio)
+    ui_layer_shutdown()
     renderer_cleanup(&g.renderer)
     window_destroy(&g.window)
+    ui_config_cleanup()
+    char_registry_cleanup()
+    settings_cleanup()
     config_cleanup()
 }

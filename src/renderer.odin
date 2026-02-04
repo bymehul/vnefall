@@ -3,6 +3,10 @@ package vnefall
 import "core:fmt"
 import gl "vendor:OpenGL"
 
+Vec2 :: struct {
+    x, y: f32,
+}
+
 // Simple shaders to get pixels on screen
 VS_SRC :: `#version 330 core
 layout (location = 0) in vec2 aPos;
@@ -122,14 +126,22 @@ renderer_draw_fullscreen :: proc(r: ^Renderer, tex: u32) {
 }
 
 renderer_draw_texture :: proc(r: ^Renderer, tex: u32, x, y, w, h: f32) {
+    renderer_draw_texture_tinted(r, tex, x, y, w, h, {1, 1, 1, 1})
+}
+
+renderer_draw_texture_tinted :: proc(r: ^Renderer, tex: u32, x, y, w, h: f32, color: [4]f32) {
+    renderer_draw_texture_tinted_uv(r, tex, x, y, w, h, Vec2{0, 0}, Vec2{1, 1}, color)
+}
+
+renderer_draw_texture_tinted_uv :: proc(r: ^Renderer, tex: u32, x, y, w, h: f32, uv0, uv1: Vec2, color: [4]f32) {
     // 2 triangles per quad
     verts := [6][4]f32{
-        {x,     y,     0, 0},
-        {x + w, y,     1, 0},
-        {x + w, y + h, 1, 1},
-        {x,     y,     0, 0},
-        {x + w, y + h, 1, 1},
-        {x,     y + h, 0, 1},
+        {x,     y,     uv0.x, uv0.y},
+        {x + w, y,     uv1.x, uv0.y},
+        {x + w, y + h, uv1.x, uv1.y},
+        {x,     y,     uv0.x, uv0.y},
+        {x + w, y + h, uv1.x, uv1.y},
+        {x,     y + h, uv0.x, uv1.y},
     }
     
     gl.BindVertexArray(r.vao)
@@ -141,7 +153,7 @@ renderer_draw_texture :: proc(r: ^Renderer, tex: u32, x, y, w, h: f32) {
     gl.Uniform1i(r.u_tex, 0)
     gl.Uniform1i(r.u_use_tex, 1)
     gl.Uniform1i(r.u_is_font, 0)
-    gl.Uniform4f(r.u_color, 1, 1, 1, 1)
+    gl.Uniform4f(r.u_color, color[0], color[1], color[2], color[3])
     
     gl.DrawArrays(gl.TRIANGLES, 0, 6)
 }
@@ -165,41 +177,45 @@ renderer_draw_rect :: proc(r: ^Renderer, x, y, w, h: f32, color: [4]f32) {
     gl.DrawArrays(gl.TRIANGLES, 0, 6)
 }
 
-renderer_draw_textbox :: proc(r: ^Renderer, speaker, text: string) {
-    h  := cfg.textbox_height
-    m  := cfg.textbox_margin
-    p  := cfg.textbox_padding
+renderer_draw_textbox :: proc(r: ^Renderer, speaker, text: string, bg_tex: u32) {
+    h  := ui_cfg.textbox_height
+    m  := ui_cfg.textbox_margin
+    p  := ui_cfg.textbox_padding
     bx := m
     by := r.height - h - m
     bw := r.width - (m * 2)
     
     // The main box
-    renderer_draw_rect(r, bx, by, bw, h, {0.02, 0.02, 0.05, 0.85})
+    if bg_tex != 0 {
+        renderer_draw_texture_tinted(r, bg_tex, bx, by, bw, h, {1, 1, 1, ui_cfg.textbox_alpha})
+    } else {
+        renderer_draw_rect(r, bx, by, bw, h, {0.02, 0.02, 0.05, ui_cfg.textbox_alpha})
+    }
     
     tx := bx + p
     ty := by + p + FONT_SIZE
     
     if len(speaker) > 0 {
-        renderer_draw_text(r, speaker, tx, ty, cfg.color_speaker)
+        renderer_draw_text(r, speaker, tx, ty, ui_cfg.speaker_color)
         ty += FONT_SIZE + 8
     }
     
     lines := font_wrap_text(text, bw - (p * 2))
     for line in lines {
-        renderer_draw_text(r, line, tx, ty, cfg.color_text)
+        renderer_draw_text(r, line, tx, ty, ui_cfg.text_color)
         ty += FONT_SIZE + 4
         delete(line)
     }
     delete(lines)
 }
 
-renderer_draw_choice_menu :: proc(r: ^Renderer, options: [dynamic]Choice_Option, selected: int) {
+renderer_draw_choice_menu :: proc(r: ^Renderer, options: [dynamic]Choice_Option, selected: int, tex_idle, tex_hov: u32) {
     count := len(options)
     if count == 0 do return
     
-    button_w := cfg.choice_w
-    button_h := cfg.choice_h
-    spacing  := cfg.choice_spacing
+    button_w := ui_cfg.choice_w
+    button_h := ui_cfg.choice_h
+    spacing  := ui_cfg.choice_spacing
     
     total_h := f32(count) * button_h + f32(count - 1) * spacing
     start_y := (r.height - total_h) / 2
@@ -208,15 +224,23 @@ renderer_draw_choice_menu :: proc(r: ^Renderer, options: [dynamic]Choice_Option,
     for opt, i in options {
         y := start_y + f32(i) * (button_h + spacing)
         
-        bg_color   := cfg.choice_color_idle
-        text_color := cfg.choice_text_idle
+        bg_color   := ui_cfg.choice_color_idle
+        text_color := ui_cfg.choice_text_idle
+        use_tex    := tex_idle
         
         if i == selected {
-            bg_color   = cfg.choice_color_hov
-            text_color = cfg.choice_text_hov
+            bg_color   = ui_cfg.choice_color_hov
+            text_color = ui_cfg.choice_text_hov
+            if tex_hov != 0 {
+                use_tex = tex_hov
+            }
         }
         
-        renderer_draw_rect(r, x, y, button_w, button_h, bg_color)
+        if use_tex != 0 {
+            renderer_draw_texture_tinted(r, use_tex, x, y, button_w, button_h, {1, 1, 1, ui_cfg.choice_image_alpha})
+        } else {
+            renderer_draw_rect(r, x, y, button_w, button_h, bg_color)
+        }
         
         // Center text in button
         text_w := font_text_width(opt.text)

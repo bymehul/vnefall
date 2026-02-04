@@ -1,0 +1,59 @@
+# Vnefall UI Configuration
+
+# Theme (global)
+ui_text_color   = 0xEBEBEBFF
+ui_panel_color  = 0x1A1A26E6
+ui_accent_color = 0x5AB4FFFF
+ui_border_color = 0x121214FF
+ui_shadow_color = 0x00000078
+ui_border_width = 1
+ui_font_size    = 32
+ui_text_line_height = 38
+ui_padding      = 10
+ui_corner_radius = 6
+ui_shadow_offset_x = 0
+ui_shadow_offset_y = 2
+ui_shadow_enabled  = true
+
+# Textbox (defaults; can be overridden per character in char.vnef)
+speaker_color   = 0xFFD700FF
+text_color      = 0xF5F5F5FF
+textbox_height  = 180
+textbox_margin  = 40
+textbox_padding = 20
+textbox_image   = ""
+textbox_alpha   = 0.85
+textbox_anchor  = "bottom" # bottom | top | center
+
+# Optional Loading Screen
+# Put the image inside assets/images/ and set the filename below.
+# Example: loading_image = "loading.png"
+loading_image = ""
+
+# Choice Menu
+choice_w          = 600
+choice_h          = 60
+choice_spacing    = 20
+choice_color_idle = 0x1A1A26E6
+choice_color_hov  = 0x334D80F2
+choice_text_idle  = 0xF5F5F5FF
+choice_text_hov   = 0xFFD700FF
+choice_image_idle  = ""
+choice_image_hov   = ""
+choice_image_alpha = 0.95
+
+# Typewriter
+text_speed = 0.05
+text_shake_px = 2.0
+
+# Cinematic Transitions
+# Default background transition (overridden by `with <type> [ms]`).
+bg_transition = "none"     # fade | wipe | slide | dissolve | zoom | blur | flash | shake | none
+bg_transition_ms = 400     # Default duration (ms) for background transitions.
+bg_shake_px = 10           # Shake strength for `with shake` on backgrounds.
+char_transition = "fade"   # fade | slide | shake | none
+char_fade_ms = 250         # Default duration (ms) for character show/hide transitions.
+char_slide_ms = 250        # Default duration (ms) for character slide transitions.
+char_shake_ms = 200        # Default duration (ms) for character shake transitions.
+char_shake_px = 8          # Shake strength for character shake.
+char_transition = "fade"   # fade | slide | shake | none

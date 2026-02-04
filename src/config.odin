@@ -35,28 +35,6 @@ Config :: struct {
     path_saves:      string,
     entry_script:    string,
     
-    // Visual defaults
-    color_speaker:   [4]f32, // RGBA 0-1
-    color_text:      [4]f32, // RGBA 0-1
-    textbox_height:  f32,
-    textbox_margin:  f32,
-    textbox_padding: f32,
-    
-    // Optional loading screen image (relative to path_images)
-    loading_image:   string,
-    
-    // Choice Menu Styles
-    choice_w:          f32,
-    choice_h:          f32,
-    choice_spacing:    f32,
-    choice_color_idle: [4]f32,
-    choice_color_hov:  [4]f32,
-    choice_text_idle:  [4]f32,
-    choice_text_hov:   [4]f32,
-    
-    // Logic
-    text_speed:      f32,
-
     // Audio (defaults)
     volume_master:   f32,
     volume_music:    f32,
@@ -77,36 +55,18 @@ config_init_defaults :: proc() {
     cfg.design_width   = 1280
     cfg.design_height  = 720
     
-    cfg.path_assets    = strings.clone("assets/")
-    cfg.path_images    = strings.clone("assets/images/")
-    cfg.path_music     = strings.clone("assets/music/")
-    cfg.path_ambience  = strings.clone("assets/ambience/")
-    cfg.path_sfx       = strings.clone("assets/sfx/")
-    cfg.path_voice     = strings.clone("assets/voice/")
-    cfg.path_scripts   = strings.clone("assets/scripts/")
-    cfg.path_manifests = strings.clone("assets/manifests/")
-    cfg.path_characters = strings.clone("assets/images/characters/")
-    cfg.path_saves     = strings.clone("saves/")
-    cfg.entry_script   = strings.clone("assets/scripts/demo.vnef")
+    cfg.path_assets    = strings.clone("demo/assets/")
+    cfg.path_images    = strings.clone("demo/assets/images/")
+    cfg.path_music     = strings.clone("demo/assets/music/")
+    cfg.path_ambience  = strings.clone("demo/assets/ambience/")
+    cfg.path_sfx       = strings.clone("demo/assets/sfx/")
+    cfg.path_voice     = strings.clone("demo/assets/voice/")
+    cfg.path_scripts   = strings.clone("demo/assets/scripts/")
+    cfg.path_manifests = strings.clone("demo/assets/manifests/")
+    cfg.path_characters = strings.clone("demo/assets/images/characters/")
+    cfg.path_saves     = strings.clone("demo/saves/")
+    cfg.entry_script   = strings.clone("demo/assets/scripts/demo.vnef")
     
-    cfg.color_speaker  = {1.0, 0.84, 0.0, 1.0} // Gold
-    cfg.color_text     = {0.96, 0.96, 0.96, 1.0} // Off-white
-    cfg.textbox_height  = 180
-    cfg.textbox_margin  = 40
-    cfg.textbox_padding = 20
-    
-    cfg.loading_image = strings.clone("")
-    
-    cfg.choice_w          = 600
-    cfg.choice_h          = 60
-    cfg.choice_spacing    = 20
-    cfg.choice_color_idle = {0.1, 0.1, 0.15, 0.9}
-    cfg.choice_color_hov  = {0.2, 0.3, 0.5, 0.95}
-    cfg.choice_text_idle  = {0.96, 0.96, 0.96, 1.0}
-    cfg.choice_text_hov   = {1.0, 0.84, 0.0, 1.0}
-    
-    cfg.text_speed     = 0.05
-
     cfg.volume_master = 1.0
     cfg.volume_music  = 1.0
     cfg.volume_ambience = 1.0
@@ -198,40 +158,6 @@ config_load :: proc(path: string) -> bool {
             delete(cfg.entry_script)
             cfg.entry_script  = strings.clone(strings.trim(val, "\""))
         
-        case "color_speaker":   cfg.color_speaker = parse_hex_color(val)
-        case "color_text":      cfg.color_text    = parse_hex_color(val)
-        case "textbox_height":  
-            v, _ := strconv.parse_f32(val)
-            cfg.textbox_height = v
-        case "textbox_margin":  
-            v, _ := strconv.parse_f32(val)
-            cfg.textbox_margin = v
-        case "textbox_padding":  
-            v, _ := strconv.parse_f32(val)
-            cfg.textbox_padding = v
-        
-        case "loading_image":
-            delete(cfg.loading_image)
-            cfg.loading_image = strings.clone(strings.trim(val, "\""))
-
-        case "choice_w":
-            v, _ := strconv.parse_f32(val)
-            cfg.choice_w = v
-        case "choice_h":
-            v, _ := strconv.parse_f32(val)
-            cfg.choice_h = v
-        case "choice_spacing":
-            v, _ := strconv.parse_f32(val)
-            cfg.choice_spacing = v
-        case "choice_color_idle": cfg.choice_color_idle = parse_hex_color(val)
-        case "choice_color_hov":  cfg.choice_color_hov  = parse_hex_color(val)
-        case "choice_text_idle":  cfg.choice_text_idle  = parse_hex_color(val)
-        case "choice_text_hov":   cfg.choice_text_hov   = parse_hex_color(val)
-        
-        case "text_speed":      
-            v, _ := strconv.parse_f32(val)
-            cfg.text_speed = v
-        
         case "volume_master":
             v, _ := strconv.parse_f32(val)
             cfg.volume_master = v
@@ -265,7 +191,6 @@ config_cleanup :: proc() {
     delete(cfg.path_sfx)
     delete(cfg.path_voice)
     delete(cfg.path_scripts)
-    delete(cfg.loading_image)
     delete(cfg.path_manifests)
     delete(cfg.path_characters)
     delete(cfg.path_saves)

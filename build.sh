@@ -4,6 +4,6 @@
 set -e
 
 echo "Building Vnefall..."
-odin build src -out:vnefall -debug
+odin build src -out:vnefall -debug -collection:vneui=./vneui
 
-echo "Done. Run with: ./vnefall assets/scripts/demo_game.vnef"
+echo "Done. Run with: ./vnefall demo/assets/scripts/demo_game.vnef"

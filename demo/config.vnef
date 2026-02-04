@@ -1,0 +1,34 @@
+# Vnefall Configuration
+
+# Window Settings (Desktop Only)
+window_width  = 1280
+window_height = 720
+window_title  = "Vnefall Story"
+
+# Design Resolution (The coordinate system you design for)
+# This ensures your game looks the same on a Phone or a 4K TV.
+design_width  = 1280
+design_height = 720
+
+# Path Settings
+path_assets    = "demo/assets/"
+path_images    = "demo/assets/images/"
+path_music     = "demo/assets/music/"
+path_ambience  = "demo/assets/ambience/"
+path_sfx       = "demo/assets/sfx/"
+path_voice     = "demo/assets/voice/"
+path_scripts   = "demo/assets/scripts/"
+path_manifests = "demo/assets/manifests/"
+path_characters = "demo/assets/images/characters/"
+path_saves     = "demo/saves/"
+entry_script   = "demo/assets/scripts/demo_game.vnef"
+
+# UI settings are now in ui.vnef
+# (textbox/choice styles, loading screen, text speed, theme colors)
+
+# Audio Defaults (0.0 - 1.0)
+volume_master = 1.0
+volume_music  = 1.0
+volume_ambience = 1.0
+volume_sfx    = 1.0
+volume_voice  = 1.0

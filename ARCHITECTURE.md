@@ -5,7 +5,7 @@ This document explains how the engine is put together, so you don't have to gues
 ## Core Flow
 Vnefall uses a simple "State" pattern. Everything is held in a global `g` (Game_State) in `main.odin`.
 
-1. **Init**: Set up SDL, OpenGL, Audio, and Load the script.
+1. **Init**: Set up SDL, OpenGL, Audio, UI config, and load the script.
 2. **Poll**: Check for clicks or keypresses.
 3. **Update**: Advance the script instruction pointer (IP) if the user clicked.
 4. **Draw**: Clear the screen, draw the current background, then draw the text box on top.
@@ -27,15 +27,19 @@ If you want to add a command like `shake_screen` or `show_character`:
 
 ## Systems
 - **Virtual Resolution**: The engine uses a "design resolution" for coordinate math (e.g. 1280x720). This is automatically scaled to the actual window size using a fixed orthographic projection.
-- **Config-Driven**: Almost all engine constants (resolution, colors, paths) are loaded from `config.vnef` at runtime.
+- **Config-Driven**: Engine constants (resolution, paths, entry script) are loaded from `demo/config.vnef` at runtime.
+- **UI-Driven**: UI styling and transitions live in `demo/ui.vnef`, and per-character name/text colors live in `demo/char.vnef`.
 - **Branching Logic**: Scripts support labels, jumps, and player choices. A pre-processing step builds a label-to-index map for instant navigation.
 - **Renderer (`renderer.odin`)**: Uses a single shader and a single buffer. We draw everything as textured quads (2 triangles, 6 vertices).
+- **UI Layer (`ui_layer.odin`)**: Uses **VNEUI** for textbox + choice menus with a theme derived from `ui.vnef`.
 - **Text (`font.odin`)**: Uses `stb_truetype` to bake a font into a single atlas texture.
 - **Audio (`audio.odin`)**: A thin wrapper around `SDL_mixer` with separate channels for **Music**, **Ambience**, **SFX**, and **Voice**. Audio assets are prefetched via manifests during `scene_next`.
 - **Scene System (`scene.odin`, `manifest.odin`)**: Manages asset loading per-scene. Automatically generates manifests and supports background prefetching for zero-stutter transitions.
 - **Shared Asset Reuse**: When switching scenes, assets present in both current and next manifests (textures + audio) are preserved to avoid double-loading and reduce memory spikes.
-- **Loading Screen**: If a new script doesn’t set a `bg` immediately, the engine can show a configurable loading image (`loading_image` in `config.vnef`).
-- **Character System (`character.odin`)**: A singleton-style manager for sprites. Supports **Scale-to-Fit** (80% vertical height) and **Z-Order** sorted drawing.
+- **Loading Screen**: If a new script doesn’t set a `bg` immediately, the engine can show a configurable loading image (`loading_image` in `ui.vnef`).
+- **Character System (`character.odin`)**: A singleton-style manager for sprites. Supports **Scale-to-Fit** (80% vertical height), **Z-Order** sorted drawing, and simple show/hide transitions.
+- **Transitions (`transitions.odin`)**: Background transitions are centralized here. `with` sets a one-shot transition for the next `bg` or `char`.
+- **Text Effects (`textbox.odin`)**: Inline tags like `{color=...}` and `{shake}` + per-line speed override.
 - **Persistence (`sthiti/`)**: Uses Sthiti-DB v6 for binary state serialization. Saves all global variables (integers and strings), current textbox text, active character states, script position, environment, audio state, and active choice menus.
 
 ## Graphics API Strategy
@@ -44,9 +48,10 @@ We use **OpenGL 3.3** for its high compatibility and simplicity. While Apple has
 
 ## Folder Structure
 - `src/`: All Odin source code.
-- `assets/images/`: Put your `.png` or `.jpg` backgrounds here.
-- `assets/music/`: Put your `.mp3` or `.ogg` tracks here.
-- `assets/scripts/`: This is where the `.vnef` story files live.
+- `demo/`: Demo project root.
+- `demo/assets/images/`: Put your `.png` or `.jpg` backgrounds here.
+- `demo/assets/music/`: Put your `.mp3` or `.ogg` tracks here.
+- `demo/assets/scripts/`: This is where the `.vnef` story files live.
 
 ## Maintenance & Debugging
 

@@ -12,7 +12,7 @@ When you call `scene_next "my_next_script"`, the engine:
 ## 🖼️ Optional Loading Screen
 If the next script doesn’t immediately set a `bg`, the engine can show a loading screen instead of a black flash.
 
-Add this to `config.vnef` (relative to `assets/images/`):
+Add this to `demo/ui.vnef` (relative to `demo/assets/images/`):
 ```text
 loading_image = "loading.png"
 ```

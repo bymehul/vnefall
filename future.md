@@ -65,13 +65,14 @@ This update combines a simplified character system, Sthiti-DB persistence, and h
 
 ---
 
-## v1.4.0: Visual & Interface Polish (Transitions & UI)
+## v1.4.0: Visual & Interface Polish (Transitions & UI) ✅ COMPLETE
 
-- [ ] **Cinematic Transitions**: Fades and wipes for backgrounds and character sprites.
-- [ ] **Custom Textbox**: Support for custom PNG backgrounds and transparency controls for the dialogue box.
-- [ ] **UI Customization**: Fully customizable Choice buttons (PNG textures, hover effects).
-- [ ] **Text Effects**: Typewriter speed control, text shaking, and color tags.
-- [ ] **Opening Screen**: Optional splash/loading screen so large asset sets can preload before the first scene.
+- [x] **Cinematic Transitions**: `with` overrides for backgrounds + characters (fade, wipe, slide, dissolve, zoom, blur, flash, shake, none).
+- [x] **Custom Textbox**: Support for custom PNG backgrounds, anchoring, and transparency controls for the dialogue box.
+- [x] **UI Customization**: Fully customizable Choice buttons (PNG textures, hover effects).
+- [x] **Text Effects**: Typewriter speed control, per-line speed overrides, text shaking, and color tags.
+- [x] **Opening Screen**: Optional splash/loading screen so large asset sets can preload before the first scene.
+- [x] **UI Config Split**: `ui.vnef` (UI) + `char.vnef` (per-character name/text colors).
 
 ---
 
@@ -92,6 +93,8 @@ This update combines a simplified character system, Sthiti-DB persistence, and h
 - [ ] **Script Linter**: Check `.vnef` files for syntax errors or broken jumps.
 - [ ] **Debug Console**: Runtime variable viewer and command executor (F3).
 - [ ] **Hot Reload**: Live script reloading while the engine is running.
+- [ ] **Project Root Discovery**: Remove demo-path hardcoding via CLI flags or auto-detected project roots.
+- [ ] **Project App/Editor (Lite)**: Simple UI to configure `config.vnef`/`ui.vnef` and preview scenes.
 
 ---
 

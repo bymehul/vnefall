@@ -145,7 +145,9 @@ scene_cleanup :: proc(s: ^Scene) {
     
     // Delete OpenGL textures owned by this scene
     for path, &tex in s.textures {
-        gl.DeleteTextures(1, &tex)
+        full := strings.concatenate({cfg.path_images, path})
+        texture_release(full)
+        delete(full)
         delete(path)
     }
     delete(s.textures)
@@ -168,7 +170,9 @@ scene_cleanup_keep :: proc(s: ^Scene, next: ^Scene) {
         if !shared && contains_string_scene(next.manifest.sprites[:], path) do shared = true
         
         if !shared {
-            gl.DeleteTextures(1, &tex)
+            full := strings.concatenate({cfg.path_images, path})
+            texture_release(full)
+            delete(full)
         }
         delete(path)
     }

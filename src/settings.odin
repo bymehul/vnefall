@@ -13,6 +13,7 @@ import "core:strings"
 import "core:strconv"
 
 SETTINGS_PATH :: "settings.vnef"
+g_settings_path: string
 
 Settings :: struct {
     volume_master: f32,
@@ -32,12 +33,24 @@ settings_init_defaults :: proc() {
     g_settings.volume_voice  = cfg.volume_voice
 }
 
-settings_load :: proc(path: string = SETTINGS_PATH) -> bool {
+settings_set_path :: proc(path: string) {
+    if g_settings_path != "" do delete(g_settings_path)
+    g_settings_path = strings.clone(path)
+}
+
+settings_resolve_path :: proc(path: string) -> string {
+    if path != "" do return path
+    if g_settings_path != "" do return g_settings_path
+    return SETTINGS_PATH
+}
+
+settings_load :: proc(path: string = "") -> bool {
     settings_init_defaults()
-    
-    data, ok := os.read_entire_file(path)
+
+    use_path := settings_resolve_path(path)
+    data, ok := os.read_entire_file(use_path)
     if !ok {
-        fmt.printf("[settings] No settings found at %s. Using defaults.\n", path)
+        fmt.printf("[settings] No settings found at %s. Using defaults.\n", use_path)
         return true
     }
     defer delete(data)
@@ -84,11 +97,11 @@ settings_load :: proc(path: string = SETTINGS_PATH) -> bool {
         delete(parts)
     }
     
-    fmt.printf("[settings] Loaded settings from %s\n", path)
+    fmt.printf("[settings] Loaded settings from %s\n", use_path)
     return true
 }
 
-settings_save :: proc(path: string = SETTINGS_PATH) -> bool {
+settings_save :: proc(path: string = "") -> bool {
     b: strings.Builder
     strings.builder_init(&b)
     defer strings.builder_destroy(&b)
@@ -101,7 +114,12 @@ settings_save :: proc(path: string = SETTINGS_PATH) -> bool {
     fmt.sbprintf(&b, "volume_voice  = %v\n", g_settings.volume_voice)
     
     content := strings.to_string(b)
-    return os.write_entire_file(path, transmute([]u8)content)
+    use_path := settings_resolve_path(path)
+    return os.write_entire_file(use_path, transmute([]u8)content)
+}
+
+settings_cleanup :: proc() {
+    if g_settings_path != "" do delete(g_settings_path)
 }
 
 settings_set_volume :: proc(channel: string, value: f32) {

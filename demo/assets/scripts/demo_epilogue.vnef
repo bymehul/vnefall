@@ -1,6 +1,7 @@
-title "Inkframe v1.3.0 - Epilogue"
+title "Inkframe v1.4.0 - Epilogue"
 
 scene "demo_epilogue"
+with fade 400
 bg "apartment.png"
 
 music "demo_theme_alt.ogg"
@@ -16,5 +17,5 @@ if (met_kaito) {
     say Emi "Kaito says goodbye too."
 }
 
-say Emi "Inkframe v1.3.0: Audio Expansion complete."
+say Emi "Inkframe v1.4.0: Visual + UI polish complete."
 end

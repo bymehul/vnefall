@@ -22,16 +22,47 @@ char Alice show happy at center z 10
 
 # Using different extensions
 char Alice show "photo.jpg" at left
+
+# Inline transition override
+char Alice show happy at left with slide 250
 ```
 
 ## `char [Name] hide`
 
-Hides the character and **immediately flushes them from RAM**.
+Hides the character. By default, it uses the transition duration from `demo/ui.vnef` (`char_fade_ms`).  
+You can override the next show/hide with `with <type> [ms]` (e.g., `with slide 250`).  
+For characters, `fade`, `slide`, `shake`, and `none` are distinct; other types fall back to a fade.
+
+Default character transition type comes from `char_transition` in `demo/ui.vnef`.
+Transition durations come from `char_fade_ms`, `char_slide_ms`, and `char_shake_ms` in `demo/ui.vnef`.
+Shake strength comes from `char_shake_px` in `demo/ui.vnef`.
 
 **Example:**
 ```vnef
+with slide 250
 char Alice hide
 ```
+
+---
+
+## Character Registry (demo/char.vnef)
+
+You can set per-character UI colors in `demo/char.vnef`.  
+These override the defaults from `demo/ui.vnef`.
+
+```
+[Alice]
+name_color = 0xFFD700FF
+text_color = 0xF5F5F5FF
+
+[Bob]
+name_color = 0x7ACBFFFF
+text_color = 0xE6F2FFFF
+```
+
+If a character is missing here, the engine falls back to:
+- `speaker_color` (name) from `demo/ui.vnef`
+- `text_color` (dialogue) from `demo/ui.vnef`
 
 ---
 
@@ -47,7 +78,7 @@ Positions are calculated as percentages of `design_width`:
 - `right`: 75%
 
 ### Automatic Memory Management (Dharana)
-- **Flush on Hide**: When a character is hidden, they are WIPED from memory to keep the engine fast.
+- **Flush on Hide**: When a character is hidden, they are removed after any active transition completes.
 - **Flush on Script Switch**: When jumping between script files, all character data is cleared to prevent "ghost" sprites in new chapters.
 - **Prefetching**: The engine automatically scans `char` commands in your scripts to preload sprites in the background.
 

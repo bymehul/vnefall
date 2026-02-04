@@ -6,12 +6,14 @@ Vnefall is a simple, no-nonsense visual novel engine. It's built in Odin using S
 
 ## Features
 - **Branching Dialogue**: Full support for labels, jumps, and player choices.
-- **Configuration System**: Portable `config.vnef` file for resolution, colors, and paths.
+- **Configuration System**: `demo/config.vnef` for engine settings, `demo/ui.vnef` for UI styling + transitions, and `demo/char.vnef` for per-character colors.
 - **Virtual Resolution**: Design once, it scales automatically to any screen.
 - **Simple Syntax**: Commands like `say`, `bg`, `char`, `choice`, `set`, and `if`.
 - **Audio Support**: Background music with looping support.
 - **Sthiti Persistence**: Fast, native Save/Load system for story progress.
 - **Character Stacking**: Responsive scaling and Z-index control for sprites.
+- **Cinematic Transitions**: `with fade|wipe|slide|dissolve|zoom|blur|flash|shake|none` for backgrounds + character fades/slides.
+- **Text Effects**: Inline `{color=...}` tags, `{shake}`, and per-line `[speed=...]` overrides.
 
 ## How to get started
 
@@ -19,7 +21,7 @@ Vnefall is a simple, no-nonsense visual novel engine. It's built in Odin using S
 If you're on Linux, grab the `vnefall` binary from the [Releases](https://github.com/bymehul/vnefall/releases) page. Run the new high-quality demo:
 ```bash
 chmod +x vnefall
-./vnefall assets/scripts/demo_game.vnef
+./vnefall demo/assets/scripts/demo_game.vnef
 ```
 
 ### Want to build from source?
@@ -34,21 +36,21 @@ sudo apt install libsdl2-dev libsdl2-mixer-dev libsdl2-ttf-dev
 
 # Build (v1.2.0)
 ./build.sh
-./vnefall assets/scripts/v120_char_pro.vnef
+./vnefall demo/assets/scripts/v120_char_pro.vnef
 ```
 
 **Windows:**
 Install Odin, download the SDL2 development libs, and run:
 ```powershell
 odin build src -out:vnefall.exe
-./vnefall.exe assets/scripts/demo.vnef
+./vnefall.exe demo/assets/scripts/demo.vnef
 ```
 
 **Mac:**
 ```bash
 brew install sdl2 sdl2_mixer
 odin build src -out:vnefall
-./vnefall assets/scripts/demo.vnef
+./vnefall demo/assets/scripts/demo.vnef
 ```
 
 ## Writing your own story
@@ -56,6 +58,12 @@ odin build src -out:vnefall
 Scripts are just simple text files ending in `.vnef`. You can change backgrounds, play music, and write dialogue without touching a single line of code.
 
 See the [detailed command guide](docs/commands/) for all available commands.
+
+Project layout (demo-style):
+- `demo/config.vnef` (engine paths, entry script, resolution)
+- `demo/ui.vnef` (textbox, choice UI, transitions)
+- `demo/char.vnef` (per-character name/text colors)
+- `demo/assets/` (images, audio, scripts)
 
 Here's what a script looks like:
 ```vnef

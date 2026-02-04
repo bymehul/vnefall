@@ -1,0 +1,205 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">
+<rect width="100%" height="100%" fill="#0b0c12"/>
+<rect x="28.00" y="30.00" width="904.00" height="584.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="28.00" y="28.00" width="904.00" height="584.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="29.00" y="29.00" width="902.00" height="582.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="40.00" y="54.00" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">VNEUI Demo - Menus + Overlays</text>
+<line x1="40.00" y1="78.00" x2="920.00" y2="78.00" stroke="rgba(25,27,32,1.00)" stroke-width="2.00"/>
+<text x="40.00" y="101.20" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">This demo exercises the roadmap features: menu helpers, preferences, save/load UI,</text>
+<text x="40.00" y="123.20" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">confirm dialogs, toasts, tooltips, and transitions.</text>
+<rect x="50.00" y="155.40" width="416.50" height="148.44" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="50.00" y="153.40" width="416.50" height="148.44" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="51.00" y="154.40" width="414.50" height="146.44" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="60.00" y="176.90" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Main Menu</text>
+<line x1="60.00" y1="199.40" x2="456.50" y2="199.40" stroke="rgba(25,27,32,1.00)" stroke-width="2.00"/>
+<rect x="95.82" y="210.40" width="324.87" height="34.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="95.82" y="208.40" width="324.87" height="34.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="96.82" y="209.40" width="322.87" height="32.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="258.25" y="225.40" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">Start</text>
+<rect x="95.82" y="250.40" width="324.87" height="34.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="95.82" y="248.40" width="324.87" height="34.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="96.82" y="249.40" width="322.87" height="32.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="258.25" y="265.40" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">Continue</text>
+<rect x="95.82" y="290.40" width="324.87" height="34.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="95.82" y="288.40" width="324.87" height="34.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="96.82" y="289.40" width="322.87" height="32.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="258.25" y="305.40" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">Load</text>
+<rect x="95.82" y="330.40" width="324.87" height="34.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="95.82" y="328.40" width="324.87" height="34.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="96.82" y="329.40" width="322.87" height="32.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="258.25" y="345.40" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">Preferences</text>
+<rect x="95.82" y="370.40" width="324.87" height="34.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="95.82" y="368.40" width="324.87" height="34.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="96.82" y="369.40" width="322.87" height="32.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="258.25" y="385.40" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">Quit</text>
+<rect x="50.00" y="310.84" width="416.50" height="192.10" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="50.00" y="308.84" width="416.50" height="192.10" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="51.00" y="309.84" width="414.50" height="190.10" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="60.00" y="332.34" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Preferences</text>
+<line x1="60.00" y1="354.84" x2="456.50" y2="354.84" stroke="rgba(25,27,32,1.00)" stroke-width="2.00"/>
+<text x="60.00" y="376.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Audio</text>
+<text x="60.00" y="412.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Master</text>
+<rect x="199.28" y="397.84" width="217.52" height="34.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="199.28" y="395.84" width="217.52" height="34.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="200.28" y="396.84" width="215.52" height="32.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<rect x="199.28" y="395.84" width="174.02" height="34.00" rx="6.00" ry="6.00" fill="rgba(100,190,255,1.00)"/>
+<rect x="346.10" y="395.84" width="34.00" height="34.00" rx="6.00" ry="6.00" fill="rgba(27,28,34,1.00)"/>
+<text x="462.50" y="412.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="end" dominant-baseline="middle">80%</text>
+<text x="60.00" y="452.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Music</text>
+<rect x="199.28" y="437.84" width="217.52" height="34.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="199.28" y="435.84" width="217.52" height="34.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="200.28" y="436.84" width="215.52" height="32.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<rect x="199.28" y="435.84" width="141.39" height="34.00" rx="6.00" ry="6.00" fill="rgba(100,190,255,1.00)"/>
+<rect x="318.57" y="435.84" width="34.00" height="34.00" rx="6.00" ry="6.00" fill="rgba(27,28,34,1.00)"/>
+<text x="462.50" y="452.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="end" dominant-baseline="middle">65%</text>
+<line x1="60.00" y1="478.84" x2="456.50" y2="478.84" stroke="rgba(25,27,32,1.00)" stroke-width="2.00"/>
+<text x="60.00" y="500.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Text</text>
+<text x="60.00" y="536.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Speed</text>
+<rect x="199.28" y="521.84" width="237.32" height="34.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="199.28" y="519.84" width="237.32" height="34.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="200.28" y="520.84" width="235.32" height="32.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<rect x="199.28" y="519.84" width="105.48" height="34.00" rx="6.00" ry="6.00" fill="rgba(100,190,255,1.00)"/>
+<rect x="289.64" y="519.84" width="34.00" height="34.00" rx="6.00" ry="6.00" fill="rgba(27,28,34,1.00)"/>
+<text x="462.50" y="536.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="end" dominant-baseline="middle">5</text>
+<rect x="60.00" y="561.84" width="396.50" height="34.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="60.00" y="559.84" width="396.50" height="34.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="61.00" y="560.84" width="394.50" height="32.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<rect x="70.00" y="569.84" width="14.00" height="14.00" rx="6.00" ry="6.00" fill="rgba(27,28,34,1.00)"/>
+<text x="104.00" y="576.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Auto-Advance</text>
+<rect x="60.00" y="601.84" width="396.50" height="34.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="60.00" y="599.84" width="396.50" height="34.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="61.00" y="600.84" width="394.50" height="32.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<rect x="70.00" y="609.84" width="14.00" height="14.00" rx="6.00" ry="6.00" fill="rgba(27,28,34,1.00)"/>
+<rect x="74.00" y="613.84" width="6.00" height="6.00" rx="6.00" ry="6.00" fill="rgba(100,190,255,1.00)"/>
+<text x="104.00" y="616.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Skip Unread</text>
+<rect x="60.00" y="645.84" width="195.25" height="33.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="60.00" y="643.84" width="195.25" height="33.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="61.00" y="644.84" width="193.25" height="31.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="157.62" y="660.34" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">Back</text>
+<rect x="261.25" y="645.84" width="195.25" height="33.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="261.25" y="643.84" width="195.25" height="33.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="262.25" y="644.84" width="193.25" height="31.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="358.88" y="660.34" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">Reset</text>
+<rect x="50.00" y="509.95" width="416.50" height="88.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="50.00" y="507.95" width="416.50" height="88.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="51.00" y="508.95" width="414.50" height="86.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="60.00" y="530.95" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Inputs</text>
+<line x1="60.00" y1="552.45" x2="456.50" y2="552.45" stroke="rgba(25,27,32,1.00)" stroke-width="2.00"/>
+<text x="60.00" y="572.95" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Player Name</text>
+<rect x="60.00" y="593.95" width="396.50" height="33.00" rx="10.00" ry="10.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="60.00" y="590.95" width="396.50" height="33.00" rx="10.00" ry="10.00" fill="rgba(16,16,20,1.00)"/>
+<rect x="61.50" y="592.45" width="393.50" height="30.00" rx="8.50" ry="8.50" fill="rgba(24,26,32,1.00)"/>
+<text x="70.00" y="607.45" fill="rgba(250,240,220,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Alex</text>
+<text x="60.00" y="644.95" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Difficulty</text>
+<rect x="60.00" y="664.95" width="396.50" height="33.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="60.00" y="662.95" width="396.50" height="33.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="61.00" y="663.95" width="394.50" height="31.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="60.00" y="679.45" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Normal</text>
+<text x="456.50" y="679.45" fill="rgba(188,188,188,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="end" dominant-baseline="middle">v</text>
+<text x="60.00" y="716.95" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Nine-slice (debug)</text>
+<rect x="60.00" y="734.95" width="8.00" height="8.00" fill="rgba(90,171,229,1.00)"/>
+<rect x="68.00" y="734.95" width="380.50" height="8.00" fill="rgba(90,171,229,1.00)"/>
+<rect x="448.50" y="734.95" width="8.00" height="8.00" fill="rgba(90,171,229,1.00)"/>
+<rect x="60.00" y="742.95" width="8.00" height="32.40" fill="rgba(90,171,229,1.00)"/>
+<rect x="68.00" y="742.95" width="380.50" height="32.40" fill="rgba(90,171,229,1.00)"/>
+<rect x="448.50" y="742.95" width="8.00" height="32.40" fill="rgba(90,171,229,1.00)"/>
+<rect x="60.00" y="775.35" width="8.00" height="8.00" fill="rgba(90,171,229,1.00)"/>
+<rect x="68.00" y="775.35" width="380.50" height="8.00" fill="rgba(90,171,229,1.00)"/>
+<rect x="448.50" y="775.35" width="8.00" height="8.00" fill="rgba(90,171,229,1.00)"/>
+<rect x="493.50" y="155.40" width="416.50" height="270.69" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="493.50" y="153.40" width="416.50" height="270.69" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="494.50" y="154.40" width="414.50" height="268.69" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="503.50" y="179.90" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Save / Load</text>
+<line x1="503.50" y1="205.40" x2="900.00" y2="205.40" stroke="rgba(25,27,32,1.00)" stroke-width="2.00"/>
+<rect x="509.50" y="222.40" width="384.50" height="64.80" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="509.50" y="220.40" width="384.50" height="64.80" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="510.50" y="221.40" width="382.50" height="62.80" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<rect x="515.50" y="226.40" width="52.80" height="52.80" fill="rgba(26,28,33,1.00)"/>
+<rect x="515.50" y="226.40" width="52.80" height="1.00" fill="rgba(16,16,18,1.00)"/>
+<rect x="515.50" y="278.20" width="52.80" height="1.00" fill="rgba(16,16,18,1.00)"/>
+<rect x="515.50" y="227.40" width="1.00" height="50.80" fill="rgba(16,16,18,1.00)"/>
+<rect x="567.30" y="227.40" width="1.00" height="50.80" fill="rgba(16,16,18,1.00)"/>
+<text x="574.30" y="237.40" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Prologue - Rainy Night</text>
+<text x="574.30" y="259.40" fill="rgba(199,199,199,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Street 7</text>
+<rect x="509.50" y="293.20" width="384.50" height="64.80" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="509.50" y="291.20" width="384.50" height="64.80" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="510.50" y="292.20" width="382.50" height="62.80" rx="5.00" ry="5.00" fill="rgba(31,33,40,1.00)"/>
+<rect x="515.50" y="297.20" width="52.80" height="52.80" fill="rgba(26,28,33,1.00)"/>
+<rect x="515.50" y="297.20" width="52.80" height="1.00" fill="rgba(16,16,18,1.00)"/>
+<rect x="515.50" y="349.00" width="52.80" height="1.00" fill="rgba(16,16,18,1.00)"/>
+<rect x="515.50" y="298.20" width="1.00" height="50.80" fill="rgba(16,16,18,1.00)"/>
+<rect x="567.30" y="298.20" width="1.00" height="50.80" fill="rgba(16,16,18,1.00)"/>
+<text x="574.30" y="308.20" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Chapter 1 - Rooftop</text>
+<text x="574.30" y="330.20" fill="rgba(199,199,199,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Cityline</text>
+<rect x="509.50" y="364.00" width="384.50" height="64.80" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="509.50" y="362.00" width="384.50" height="64.80" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="510.50" y="363.00" width="382.50" height="62.80" rx="5.00" ry="5.00" fill="rgba(27,28,34,1.00)"/>
+<rect x="515.50" y="368.00" width="52.80" height="52.80" fill="rgba(26,28,33,1.00)"/>
+<rect x="515.50" y="368.00" width="52.80" height="1.00" fill="rgba(16,16,18,1.00)"/>
+<rect x="515.50" y="419.80" width="52.80" height="1.00" fill="rgba(16,16,18,1.00)"/>
+<rect x="515.50" y="369.00" width="1.00" height="50.80" fill="rgba(16,16,18,1.00)"/>
+<rect x="567.30" y="369.00" width="1.00" height="50.80" fill="rgba(16,16,18,1.00)"/>
+<text x="574.30" y="379.00" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Chapter 2 - Silent Room</text>
+<text x="574.30" y="401.00" fill="rgba(199,199,199,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Dormitory</text>
+<rect x="894.00" y="220.40" width="6.00" height="160.69" fill="rgba(27,28,34,1.00)"/>
+<rect x="894.00" y="220.40" width="6.00" height="125.11" fill="rgba(100,190,255,1.00)"/>
+<rect x="503.50" y="395.09" width="396.50" height="33.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="503.50" y="393.09" width="396.50" height="33.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="504.50" y="394.09" width="394.50" height="31.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="701.75" y="409.59" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">Back</text>
+<rect x="493.50" y="433.09" width="416.50" height="158.91" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="493.50" y="431.09" width="416.50" height="158.91" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="494.50" y="432.09" width="414.50" height="156.91" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="503.50" y="454.09" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Advanced UI</text>
+<line x1="503.50" y1="475.59" x2="900.00" y2="475.59" stroke="rgba(25,27,32,1.00)" stroke-width="2.00"/>
+<text x="503.50" y="496.09" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Transition Preview</text>
+<rect x="503.50" y="516.09" width="396.50" height="52.80" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="503.50" y="514.09" width="396.50" height="52.80" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="504.50" y="515.09" width="394.50" height="50.80" rx="5.00" ry="5.00" fill="rgba(27,29,34,1.00)"/>
+<rect x="575.49" y="521.09" width="190.32" height="42.80" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="575.49" y="519.09" width="190.32" height="42.80" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="576.49" y="520.09" width="188.32" height="40.80" rx="5.00" ry="5.00" fill="rgba(100,190,255,1.00)"/>
+<text x="670.65" y="540.49" fill="rgba(235,235,235,1.00)" font-size="16.20" font-family="Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">Slide</text>
+<rect x="503.50" y="514.09" width="396.50" height="52.80" fill="rgba(0,0,0,0.10)"/>
+<text x="503.50" y="579.09" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Modal dialogs trap input. Tooltips and</text>
+<text x="503.50" y="601.09" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">toasts are layered above the main</text>
+<text x="503.50" y="623.09" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">layout.</text>
+<rect x="28.00" y="28.00" width="904.00" height="584.00" fill="rgba(0,0,0,0.50)"/>
+<rect x="281.12" y="241.24" width="397.76" height="163.52" rx="10.00" ry="10.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="281.12" y="238.24" width="397.76" height="163.52" rx="10.00" ry="10.00" fill="rgba(16,16,20,1.00)"/>
+<rect x="282.62" y="239.74" width="394.76" height="160.52" rx="8.50" ry="8.50" fill="rgba(24,26,32,1.00)"/>
+<text x="291.12" y="261.24" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Overwrite Slot 3?</text>
+<line x1="291.12" y1="283.24" x2="668.88" y2="283.24" stroke="rgba(25,27,32,1.00)" stroke-width="2.00"/>
+<text x="291.12" y="298.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">This modal blocks background input</text>
+<text x="291.12" y="320.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">until you confirm or cancel. The</text>
+<text x="291.12" y="342.84" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">tooltip is anchored near the cursor.</text>
+<rect x="291.12" y="360.44" width="185.88" height="33.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="291.12" y="358.44" width="185.88" height="33.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="292.12" y="359.44" width="183.88" height="31.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="384.06" y="374.94" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">Cancel</text>
+<rect x="483.00" y="360.44" width="185.88" height="33.00" rx="6.00" ry="6.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="483.00" y="358.44" width="185.88" height="33.00" rx="6.00" ry="6.00" fill="rgba(18,18,20,1.00)"/>
+<rect x="484.00" y="359.44" width="183.88" height="31.00" rx="5.00" ry="5.00" fill="rgba(30,32,38,1.00)"/>
+<text x="575.94" y="374.94" fill="rgba(235,235,235,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">Overwrite</text>
+<rect x="492.00" y="322.65" width="343.52" height="64.00" rx="10.00" ry="10.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="492.00" y="319.65" width="343.52" height="64.00" rx="10.00" ry="10.00" fill="rgba(16,16,20,1.00)"/>
+<rect x="493.50" y="321.15" width="340.52" height="61.00" rx="8.50" ry="8.50" fill="rgba(22,24,30,1.00)"/>
+<text x="502.00" y="340.65" fill="rgba(250,240,220,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Tooltip: modal input is trapped</text>
+<text x="502.00" y="362.65" fill="rgba(250,240,220,1.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">to this dialog.</text>
+<rect x="580.48" y="39.00" width="343.52" height="42.00" rx="10.00" ry="10.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="580.48" y="36.00" width="343.52" height="42.00" rx="10.00" ry="10.00" fill="rgba(16,16,20,1.00)"/>
+<rect x="581.98" y="37.50" width="340.52" height="39.00" rx="8.50" ry="8.50" fill="rgba(23,25,31,0.00)"/>
+<rect x="580.48" y="36.00" width="2.00" height="42.00" fill="rgba(88,201,126,0.00)"/>
+<text x="590.48" y="57.00" fill="rgba(250,240,220,0.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Settings saved successfully.</text>
+<rect x="580.48" y="86.00" width="343.52" height="64.00" rx="10.00" ry="10.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="580.48" y="83.00" width="343.52" height="64.00" rx="10.00" ry="10.00" fill="rgba(16,16,20,1.00)"/>
+<rect x="581.98" y="84.50" width="340.52" height="61.00" rx="8.50" ry="8.50" fill="rgba(23,25,31,0.00)"/>
+<rect x="580.48" y="83.00" width="2.00" height="64.00" fill="rgba(255,168,88,0.00)"/>
+<text x="590.48" y="104.00" fill="rgba(250,240,220,0.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">New entry unlocked in the</text>
+<text x="590.48" y="126.00" fill="rgba(250,240,220,0.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">gallery.</text>
+<rect x="580.48" y="155.00" width="343.52" height="42.00" rx="10.00" ry="10.00" fill="rgba(0,0,0,0.47)"/>
+<rect x="580.48" y="152.00" width="343.52" height="42.00" rx="10.00" ry="10.00" fill="rgba(16,16,20,1.00)"/>
+<rect x="581.98" y="153.50" width="340.52" height="39.00" rx="8.50" ry="8.50" fill="rgba(23,25,31,0.00)"/>
+<rect x="580.48" y="152.00" width="2.00" height="42.00" fill="rgba(240,186,86,0.00)"/>
+<text x="590.48" y="173.00" fill="rgba(250,240,220,0.00)" font-size="18.00" font-family="Arial, sans-serif" text-anchor="start" dominant-baseline="middle">Connection lost. Retrying...</text>
+</svg>

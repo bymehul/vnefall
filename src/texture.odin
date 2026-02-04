@@ -56,6 +56,13 @@ texture_load_id :: proc(path: string) -> u32 {
     return texture_load(path).id
 }
 
+texture_release :: proc(path: string) {
+    if info, ok := cache[path]; ok {
+        gl.DeleteTextures(1, &info.id)
+        delete_key(&cache, path)
+    }
+}
+
 texture_cleanup :: proc() {
     for _, &info in cache {
         gl.DeleteTextures(1, &info.id)

@@ -39,6 +39,7 @@ Command_Type :: enum {
     BlockEnd,   // For }
     Scene,      // scene "chapter_1"
     SceneNext,  // scene_next "chapter_2" (prefetch)
+    With,       // with fade 400
 }
 
 Command :: struct {
@@ -203,6 +204,21 @@ parse_line :: proc(line: string) -> (cmd: Command) {
         cmd.who = strings.clone(strings.trim(rest, "\""))
         return
     }
+
+    // with <fade|wipe|slide|dissolve|zoom|blur|flash|shake|none> [ms]
+    if strings.has_prefix(line, "with ") {
+        cmd.type = .With
+        rest := strings.trim_space(line[5:])
+        parts := strings.split(rest, " ")
+        defer delete(parts)
+        if len(parts) >= 1 {
+            cmd.who = strings.clone(strings.trim_space(parts[0]))
+        }
+        if len(parts) >= 2 {
+            cmd.what = strings.clone(strings.trim_space(parts[1]))
+        }
+        return
+    }
     
     // dialogue: say Alice "Hello"
     if strings.has_prefix(line, "say ") {
@@ -216,7 +232,17 @@ parse_line :: proc(line: string) -> (cmd: Command) {
         }
         
         cmd.type = .Say
-        cmd.who  = strings.clone(strings.trim_space(rest[:q1]))
+        header := strings.trim_space(rest[:q1])
+        speed_val := ""
+        if idx := strings.index(header, "[speed="); idx != -1 {
+            end := strings.index(header[idx:], "]")
+            if end != -1 {
+                start := idx + len("[speed=")
+                speed_val = strings.trim_space(header[start : idx+end])
+                header = strings.trim_space(header[:idx])
+            }
+        }
+        cmd.who  = strings.clone(strings.trim_space(header))
         
         q2_part := rest[q1+1:]
         q2 := strings.index(q2_part, "\"")
@@ -224,6 +250,9 @@ parse_line :: proc(line: string) -> (cmd: Command) {
             cmd.what = strings.clone(q2_part)
         } else {
             cmd.what = strings.clone(q2_part[:q2])
+        }
+        if speed_val != "" {
+            append(&cmd.args, strings.clone(speed_val))
         }
         return
     }
@@ -423,6 +452,7 @@ parse_line :: proc(line: string) -> (cmd: Command) {
         } else {
             // Legacy: if <flag> jump <label>
             parts := strings.split(rest, " ")
+            defer delete(parts)
             if len(parts) >= 3 && parts[1] == "jump" {
                 cmd.who  = strings.clone(parts[0])
                 cmd.what = strings.clone(parts[2])
@@ -541,12 +571,39 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
     c := s.commands[s.ip]
     
     #partial switch c.type {
+    case .With:
+        kind := strings.to_lower(strings.trim_space(c.who))
+        defer delete(kind)
+        if kind == "" {
+            s.ip += 1
+            return
+        }
+        t_kind := bg_transition_kind_from_string(kind)
+        if kind != "fade" && kind != "wipe" && kind != "slide" && kind != "dissolve" && kind != "zoom" && kind != "blur" && kind != "flash" && kind != "shake" && kind != "none" {
+            fmt.eprintln("[script] Unknown transition:", kind, "using fade")
+            t_kind = .Fade
+        }
+        ms: f32 = -1
+        if c.what != "" {
+            if v, ok := strconv.parse_f32(c.what); ok {
+                ms = v
+            }
+        }
+        if ms < 0 && c.what != "" {
+            ms = 0
+        }
+        if t_kind == .None {
+            ms = 0
+        }
+        transition_set_override(t_kind, ms)
+        s.ip += 1
+
     case .Bg:
         if s.bg_path != "" do delete(s.bg_path)
         s.bg_path = strings.clone(c.who)
         
         tex := scene_get_texture(c.who)
-        if tex != 0 do state.current_bg = tex
+        if tex != 0 do bg_transition_start(state, tex)
         state.loading_active = false
         s.ip += 1
         
@@ -834,8 +891,15 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
         // Handle interpolation
         text := interpolate_text(s, c.what)
         fmt.printf("[script] Say %s: %s\n", c.who, text)
-        delete(state.textbox.text)
-        state.textbox.text = text 
+        if len(c.args) > 0 {
+            if v, ok := strconv.parse_f32(c.args[0]); ok {
+                textbox_set_text_with_speed(&state.textbox, text, v)
+            } else {
+                textbox_set_text(&state.textbox, text)
+            }
+        } else {
+            textbox_set_text(&state.textbox, text)
+        }
         s.waiting = true
         
     case .Wait:
@@ -865,23 +929,61 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
         s.ip += 1
         
     case .Character:
+        sprite := ""
+        pos    := "center"
+        z      := i32(0)
+
+        has_with := false
+        with_kind := Transition_Kind.Fade
+        with_ms: f32 = -1
+
+        // Parse args: sprite/pos, optional "with", optional "z"
+        i := 0
+        for i < len(c.args) {
+            arg := c.args[i]
+            if arg == "with" {
+                has_with = true
+                if i + 1 < len(c.args) {
+                    name := strings.to_lower(c.args[i+1])
+                    defer delete(name)
+                    with_kind = bg_transition_kind_from_string(name)
+                    if name != "fade" && name != "wipe" && name != "slide" && name != "dissolve" && name != "zoom" && name != "blur" && name != "flash" && name != "shake" && name != "none" {
+                        fmt.eprintln("[script] Unknown transition:", name, "using fade")
+                        with_kind = .Fade
+                    }
+                    i += 1
+                }
+                if i + 1 < len(c.args) {
+                    if v, ok := strconv.parse_f32(c.args[i+1]); ok {
+                        with_ms = v
+                        i += 1
+                    }
+                }
+            } else if arg == "z" && i + 1 < len(c.args) {
+                val, ok := strconv.parse_int(c.args[i+1])
+                if ok do z = i32(val)
+                i += 1
+            } else {
+                if sprite == "" {
+                    sprite = arg
+                } else if pos == "center" {
+                    pos = arg
+                }
+            }
+            i += 1
+        }
+
+        if has_with {
+            if with_ms < 0 && with_ms != -1 {
+                with_ms = 0
+            }
+            if with_kind == .None {
+                with_ms = 0
+            }
+            transition_set_override(with_kind, with_ms)
+        }
+
         if c.what == "show" {
-             sprite := ""
-             pos    := "center"
-             z      := i32(0)
-             
-             if len(c.args) > 0 do sprite = c.args[0]
-             if len(c.args) > 1 do pos    = c.args[1]
-             
-             // Check for 'z' in arguments
-             for i := 0; i < len(c.args); i += 1 {
-                 if c.args[i] == "z" && i + 1 < len(c.args) {
-                     val, ok := strconv.parse_int(c.args[i+1])
-                     if ok do z = i32(val)
-                     break
-                 }
-             }
-             
              character_show(c.who, sprite, pos, z)
         } else if c.what == "hide" {
              character_hide(c.who)
@@ -998,9 +1100,8 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
             state.textbox.visible = save.textbox_vis
             if state.textbox.speaker != "" do delete(state.textbox.speaker)
             state.textbox.speaker = strings.clone(save.speaker)
-            
-            if state.textbox.text != "" do delete(state.textbox.text)
-            state.textbox.text = strings.clone(save.textbox_text)
+            textbox_set_text(&state.textbox, strings.clone(save.textbox_text))
+            textbox_reveal_all(&state.textbox)
             
             // Restore character positions (v4)
             character_flush_all()
