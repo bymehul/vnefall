@@ -23,11 +23,29 @@ window_create :: proc(w: ^Window, title: cstring, width, height: i32) -> bool {
     sdl2.GL_SetAttribute(.CONTEXT_PROFILE_MASK, cast(i32)sdl2.GLprofile.CORE)
     sdl2.GL_SetAttribute(.CONTEXT_FLAGS, cast(i32)sdl2.GLcontextFlag.FORWARD_COMPATIBLE_FLAG)
     
+    win_w := width
+    win_h := height
+    if win_w <= 0 || win_h <= 0 {
+        mode: sdl2.DisplayMode
+        if sdl2.GetDesktopDisplayMode(0, &mode) == 0 {
+            if win_w <= 0 do win_w = mode.w
+            if win_h <= 0 do win_h = mode.h
+        } else {
+            if win_w <= 0 do win_w = 1280
+            if win_h <= 0 do win_h = 720
+        }
+    }
+
+    flags := sdl2.WINDOW_OPENGL | sdl2.WINDOW_SHOWN
+    if cfg.window_resizable {
+        flags |= sdl2.WINDOW_RESIZABLE
+    }
+
     w.handle = sdl2.CreateWindow(
         title,
         sdl2.WINDOWPOS_CENTERED, sdl2.WINDOWPOS_CENTERED,
-        width, height,
-        sdl2.WINDOW_OPENGL | sdl2.WINDOW_SHOWN,
+        win_w, win_h,
+        flags,
     )
     
     if w.handle == nil {
@@ -50,8 +68,8 @@ window_create :: proc(w: ^Window, title: cstring, width, height: i32) -> bool {
     
     sdl2.GL_SetSwapInterval(1) // VSync is usually better for visual novels
     
-    w.width = width
-    w.height = height
+    w.width = win_w
+    w.height = win_h
     
     return true
 }

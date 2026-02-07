@@ -17,6 +17,8 @@ Config :: struct {
     window_width:    i32,
     window_height:   i32,
     window_title:    string,
+    window_mode:     string,
+    window_resizable: bool,
     
     // Design resolution
     design_width:    f32,
@@ -48,9 +50,11 @@ cfg: Config
 
 // Set some sensible defaults in case the file is missing
 config_init_defaults :: proc() {
-    cfg.window_width   = 1280
-    cfg.window_height  = 720
+    cfg.window_width   = 0
+    cfg.window_height  = 0
     cfg.window_title   = strings.clone("Vnefall Story")
+    cfg.window_mode    = strings.clone("windowed")
+    cfg.window_resizable = true
     
     cfg.design_width   = 1280
     cfg.design_height  = 720
@@ -116,6 +120,13 @@ config_load :: proc(path: string) -> bool {
         case "window_title":    
             delete(cfg.window_title)
             cfg.window_title  = strings.clone(strings.trim(val, "\""))
+        case "window_mode":
+            delete(cfg.window_mode)
+            tmp := strings.to_lower(strings.trim(val, "\""))
+            defer delete(tmp)
+            cfg.window_mode = strings.clone(tmp)
+        case "window_resizable":
+            cfg.window_resizable = parse_bool(val)
         
         case "design_width":    
             v, _ := strconv.parse_f32(val)
@@ -184,6 +195,7 @@ config_load :: proc(path: string) -> bool {
 
 config_cleanup :: proc() {
     delete(cfg.window_title)
+    delete(cfg.window_mode)
     delete(cfg.path_assets)
     delete(cfg.path_images)
     delete(cfg.path_music)

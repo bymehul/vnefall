@@ -1,0 +1,37 @@
+# Settings menu
+
+menu_settings_w    = 720
+menu_settings_h    = 520
+menu_settings_w_pct = 0
+menu_settings_h_pct = 0
+
+menu_settings_anchor = "center" # left | center | right
+menu_settings_x      = 0
+menu_settings_y      = 0
+menu_settings_x_pct  = 0
+menu_settings_y_pct  = 0
+menu_settings_label_w = 200
+menu_settings_value_w = 60
+
+menu_settings_title = "Settings"
+menu_btn_back      = "Back"
+menu_btn_reset     = "Reset"
+menu_show_reset    = true
+menu_overlay_settings_alpha = 0.6
+menu_panel_color_settings = 0x121624F0
+
+# Labels
+label_master      = "Master Volume"
+label_music       = "Music"
+label_ambience    = "Ambience"
+label_sfx         = "SFX"
+label_voice       = "Voice"
+label_text_speed  = "Text Speed"
+label_fullscreen  = "Fullscreen"
+section_audio   = "Audio"
+section_reading = "Reading"
+section_display = "Display"
+
+# Text speed range (seconds per character)
+text_speed_min = 0.01
+text_speed_max = 0.20

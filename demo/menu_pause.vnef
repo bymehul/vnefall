@@ -1,0 +1,21 @@
+# Pause menu
+
+menu_panel_w      = 520
+menu_panel_h      = 420
+menu_panel_w_pct  = 0
+menu_panel_h_pct  = 0
+
+menu_pause_title  = "Paused"
+menu_btn_resume   = "Resume"
+menu_btn_settings = "Settings"
+menu_btn_quit     = "Quit"
+menu_show_quit    = true
+menu_overlay_pause_alpha = 0.7
+menu_panel_color_pause = 0x0E0F16F0
+
+menu_pause_anchor = "center" # left | center | right
+menu_pause_x      = 0
+menu_pause_y      = 0
+menu_pause_x_pct  = 0
+menu_pause_y_pct  = 0
+menu_pause_panel  = true

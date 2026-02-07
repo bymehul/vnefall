@@ -1,63 +1,27 @@
-# Vnefall Menu UI (Pause + Settings)
+# Menu base styling + shared assets
 
 # Overlay
 menu_overlay_alpha = 0.55
 menu_panel_color   = 0x151822F0
 
-# Optional background image (full path or explicit project-relative path)
-menu_bg_image = ""
+# Backgrounds (full path or explicit project-relative path)
+menu_bg_image = "demo/assets/images/witches/Library 1.png"
+menu_bg_start_image    = "demo/assets/images/witches/Library 1.png"
+menu_bg_pause_image    = "demo/assets/images/witches/House 6.png"
+menu_bg_settings_image = "demo/assets/images/witches/Workshop 1.png"
 menu_bg_alpha = 1.0
+menu_bg_start_alpha = 1.0
+menu_bg_pause_alpha = 0.85
+menu_bg_settings_alpha = 0.9
 
-# Optional opening image shown before the start menu (full path or explicit project-relative path)
-menu_intro_image = ""
+# Opening image (optional)
+menu_intro_image = "demo/assets/images/witches/Doorway.png"
 menu_intro_ms = 1200
 menu_intro_skip = true
 
-# Start menu (shown on boot)
-menu_show_start = true
-menu_start_title = "Vnefall"
-menu_btn_start   = "Start"
-menu_btn_load    = "Load"
-menu_show_load   = true
-menu_load_slot   = "auto_start"
-menu_start_w      = 520
-menu_start_h      = 420
-
-# Pause menu layout
-menu_panel_w      = 520
-menu_panel_h      = 420
+# Shared layout defaults
 menu_padding      = 12
 menu_gap          = 8
 menu_button_h     = 40
 menu_max_button_w = 0
 menu_align_h      = "center"
-
-menu_pause_title  = "Paused"
-menu_btn_resume   = "Resume"
-menu_btn_settings = "Settings"
-menu_btn_quit     = "Quit"
-menu_show_quit    = true
-
-# Settings menu layout
-menu_settings_w    = 720
-menu_settings_h    = 520
-menu_settings_title = "Settings"
-menu_btn_back      = "Back"
-menu_btn_reset     = "Reset"
-menu_show_reset    = true
-
-# Labels
-label_master      = "Master Volume"
-label_music       = "Music"
-label_ambience    = "Ambience"
-label_sfx         = "SFX"
-label_voice       = "Voice"
-label_text_speed  = "Text Speed"
-label_fullscreen  = "Fullscreen"
-section_audio   = "Audio"
-section_reading = "Reading"
-section_display = "Display"
-
-# Text speed range (seconds per character)
-text_speed_min = 0.01
-text_speed_max = 0.20

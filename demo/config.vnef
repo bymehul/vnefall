@@ -1,9 +1,13 @@
 # Vnefall Configuration
 
 # Window Settings (Desktop Only)
-window_width  = 1280
-window_height = 720
+window_width  = 0
+window_height = 0
 window_title  = "Vnefall Story"
+window_mode   = "windowed" # windowed | fullscreen | borderless
+window_resizable = true
+
+# Tip: Set window_width/height to 0 to use the current desktop size.
 
 # Design Resolution (The coordinate system you design for)
 # This ensures your game looks the same on a Phone or a 4K TV.
@@ -21,7 +25,7 @@ path_scripts   = "demo/assets/scripts/"
 path_manifests = "demo/assets/manifests/"
 path_characters = "demo/assets/images/characters/"
 path_saves     = "demo/saves/"
-entry_script   = "demo/assets/scripts/demo_game.vnef"
+entry_script   = "demo/assets/scripts/witches_game.vnef"
 
 # UI settings are now in ui.vnef
 # (textbox/choice styles, loading screen, text speed, theme colors)

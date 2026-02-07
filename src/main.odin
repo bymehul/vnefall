@@ -15,6 +15,16 @@ import SDL "vendor:sdl2"
 
 VERSION :: "1.5.0"
 
+load_menu_bg_texture :: proc(label, path: string) -> u32 {
+    if path == "" do return 0
+    info := texture_load(path)
+    if info.id == 0 {
+        fmt.eprintln("Warning: Could not load", label, ":", path)
+        return 0
+    }
+    return info.id
+}
+
 Choice_Option :: struct {
     text:  string,
     label: string,
@@ -40,6 +50,9 @@ Game_State :: struct {
     loading_tex:  u32,
     loading_active: bool,
     menu_bg_tex:  u32,
+    menu_bg_start_tex: u32,
+    menu_bg_pause_tex: u32,
+    menu_bg_settings_tex: u32,
     menu_intro_tex: u32,
     menu_intro_active: bool,
     menu_intro_timer: f32,
@@ -104,9 +117,7 @@ main :: proc() {
     defer delete(ui_path)
     ui_config_load(ui_path)
 
-    menu_path := strings.concatenate({base_dir, "menu.vnef"})
-    defer delete(menu_path)
-    menu_config_load(menu_path)
+    menu_config_load_all(base_dir)
 
     char_path := strings.concatenate({base_dir, "char.vnef"})
     defer delete(char_path)
@@ -242,22 +253,34 @@ init_game :: proc(script_path: string) -> bool {
     }
 
     if menu_cfg.menu_bg_image != "" {
-        menu_path := menu_cfg.menu_bg_image
-        info := texture_load(menu_path)
-        if info.id == 0 {
-            fmt.eprintln("Warning: Could not load menu background:", menu_path)
+        g.menu_bg_tex = load_menu_bg_texture("menu background", menu_cfg.menu_bg_image)
+    }
+    g.menu_bg_start_tex = g.menu_bg_tex
+    g.menu_bg_pause_tex = g.menu_bg_tex
+    g.menu_bg_settings_tex = g.menu_bg_tex
+    if menu_cfg.menu_bg_start_image != "" {
+        if menu_cfg.menu_bg_start_image == menu_cfg.menu_bg_image {
+            g.menu_bg_start_tex = g.menu_bg_tex
         } else {
-            g.menu_bg_tex = info.id
+            g.menu_bg_start_tex = load_menu_bg_texture("menu start background", menu_cfg.menu_bg_start_image)
+        }
+    }
+    if menu_cfg.menu_bg_pause_image != "" {
+        if menu_cfg.menu_bg_pause_image == menu_cfg.menu_bg_image {
+            g.menu_bg_pause_tex = g.menu_bg_tex
+        } else {
+            g.menu_bg_pause_tex = load_menu_bg_texture("menu pause background", menu_cfg.menu_bg_pause_image)
+        }
+    }
+    if menu_cfg.menu_bg_settings_image != "" {
+        if menu_cfg.menu_bg_settings_image == menu_cfg.menu_bg_image {
+            g.menu_bg_settings_tex = g.menu_bg_tex
+        } else {
+            g.menu_bg_settings_tex = load_menu_bg_texture("menu settings background", menu_cfg.menu_bg_settings_image)
         }
     }
     if menu_cfg.menu_intro_image != "" {
-        intro_path := menu_cfg.menu_intro_image
-        info := texture_load(intro_path)
-        if info.id == 0 {
-            fmt.eprintln("Warning: Could not load menu intro image:", intro_path)
-        } else {
-            g.menu_intro_tex = info.id
-        }
+        g.menu_intro_tex = load_menu_bg_texture("menu intro image", menu_cfg.menu_intro_image)
     }
 
     // Optional UI textures

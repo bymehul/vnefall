@@ -1,0 +1,24 @@
+# Start menu
+
+menu_show_start = true
+menu_start_title = "Vnefall"
+menu_btn_start   = "Start"
+menu_btn_load    = "Load"
+menu_show_load   = true
+menu_load_slot   = "auto_start"
+menu_overlay_start_alpha = 0.35
+menu_panel_color_start = 0x151822F0
+
+menu_start_w      = 520
+menu_start_h      = 420
+menu_start_anchor = "left"  # left | center | right
+menu_start_x      = 80
+menu_start_y      = 140
+menu_start_panel  = false
+menu_start_align_h = "start"
+
+# Percent-based sizing/offsets (0 = off)
+menu_start_w_pct  = 0
+menu_start_h_pct  = 0
+menu_start_x_pct  = 0
+menu_start_y_pct  = 0

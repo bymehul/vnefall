@@ -1,0 +1,88 @@
+# Witches & Wizards — Sample VN
+# Demonstrates backgrounds, choices, flags, and transitions.
+
+set found_grimoire = 0
+set found_herbs = 0
+
+bg "witches/House 1.png"
+with fade 400
+say Narrator "The cottage stands quiet, its windows lit by a warm glow."
+
+bg "witches/Library 1.png"
+with dissolve 350
+say Narrator "Inside, shelves rise like towers of whispered history."
+
+choice_add "Explore the library" library
+choice_add "Step into the greenhouse" greenhouse
+choice_show
+
+label library:
+    bg "witches/Library 2.png"
+    with fade 250
+    say Narrator "Dust motes drift between towering spines."
+    bg "witches/Grimoire 1.png"
+    with zoom 300
+    say Narrator "A grimoire hums softly as your fingers brush the cover."
+    set found_grimoire = 1
+    jump crossroads
+
+label greenhouse:
+    bg "witches/Greenhouse.png"
+    with fade 250
+    say Narrator "The air is sweet with herbs and rain."
+    bg "witches/Herbs.png"
+    with dissolve 300
+    say Narrator "You gather a handful of silverleaf."
+    set found_herbs = 1
+    jump crossroads
+
+label crossroads:
+    bg "witches/Doorway.png"
+    with slide 300
+    if (found_grimoire == 1) {
+        say Narrator "The grimoire's symbols glow faintly as you pass the doorway."
+    } else {
+        say Narrator "The doorway is cold to the touch, waiting for a secret."
+    }
+    if (found_herbs == 1) {
+        say Narrator "The herbs release a calming scent, steadying your breath."
+    }
+
+    choice_add "Visit the workshop" workshop
+    choice_add "Climb the tower" tower
+    choice_show
+
+label workshop:
+    bg "witches/Workshop 1.png"
+    with fade 250
+    say Narrator "Tools and charms cover the benches in neat rows."
+    bg "witches/Cauldron 3.png"
+    with dissolve 300
+    say Narrator "The cauldron simmers. A potion awaits its final ingredient."
+    if (found_herbs == 1) {
+        say Narrator "You add the silverleaf. The liquid turns a gentle gold."
+    } else {
+        say Narrator "Without the herbs, the mixture stays dark."
+    }
+    jump finale
+
+label tower:
+    bg "witches/Tower 3.png"
+    with fade 250
+    say Narrator "You climb the stone stairs, higher and higher."
+    bg "witches/Tower 7.png"
+    with zoom 300
+    say Narrator "The skyline glows. The stars feel within reach."
+    if (found_grimoire == 1) {
+        say Narrator "The grimoire opens, revealing a spell of starlight."
+    } else {
+        say Narrator "The sky is beautiful, but its meaning remains hidden."
+    }
+    jump finale
+
+label finale:
+    bg "witches/House 8.png"
+    with fade 400
+    say Narrator "Night settles gently over the cottage."
+    say Narrator "Your choices have shaped the evening's magic."
+    end

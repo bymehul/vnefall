@@ -90,7 +90,6 @@ This update combines a simplified character system, Sthiti-DB persistence, and h
 - [ ] **Backlog**: A scrollable history window for reviewing previously read text.
 - [ ] **Auto-Advance**: Toggleable mode for automatic reading progression.
 - [ ] **Menu UI Polish**: Layout refinement, branding header styles, and improved focus/hover cues.
-- [ ] **Video / Animation Support**: Basic playback for opening logos, animated backgrounds, and short UI clips.
 
 ---
 
@@ -98,7 +97,7 @@ This update combines a simplified character system, Sthiti-DB persistence, and h
 
 - [ ] **Global Texture Registry**: Prevent duplicate assets from being loaded into VRAM. Deduplicates shared backgrounds across scripts.
 - [ ] **LRU Cache (Least Recently Used)**: Automatically evict old textures when reaching a memory limit, rather than manual `scene_next none`.
-- [ ] **Intelligent Streaming**: Predict upcoming assets by scanning the script ahead of the player (Ren'Py-style prediction).
+- [ ] **Intelligent Streaming**: Predict upcoming assets by scanning the script ahead of the player .
 - [ ] **Script Linter**: Check `.vnef` files for syntax errors or broken jumps.
 - [ ] **Debug Console**: Runtime variable viewer and command executor (F3).
 - [ ] **Hot Reload**: Live script reloading while the engine is running.
@@ -120,6 +119,7 @@ This update combines a simplified character system, Sthiti-DB persistence, and h
 ## v2: Future Horizons
 
 - [ ] **Layered Sprite Model**: Full `base` + `outfit` + `expression` compositing.
+- [ ] **Video / Animation Support**: Basic playback for opening logos, animated backgrounds, and short UI clips.
 - [ ] **WGPU Port**: Move to `wgpu` or `sokol_gfx` for Web (WASM) and Mobile support.
 - [ ] **Live2D / Mesh Warp**: Support for subtle breathing/blink animations.
 - [ ] **Rollback System**: Full state "Back" command (Rewind time).

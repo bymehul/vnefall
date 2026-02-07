@@ -17,13 +17,14 @@ ui_layer_draw_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Ga
         return
     }
 
-    if g.menu_bg_tex != 0 {
-        tint := vneui.ui_color(1, 1, 1, menu_cfg.menu_bg_alpha)
-        vneui.ui_push_image(ctx, vneui.Rect{0, 0, cfg.design_width, cfg.design_height}, int(g.menu_bg_tex), vneui.Vec2{0, 0}, vneui.Vec2{1, 1}, tint)
+    bg_tex := menu_bg_tex_for_page(g)
+    if bg_tex != 0 {
+        tint := vneui.ui_color(1, 1, 1, menu_bg_alpha_for_page(g))
+        vneui.ui_push_image(ctx, vneui.Rect{0, 0, cfg.design_width, cfg.design_height}, int(bg_tex), vneui.Vec2{0, 0}, vneui.Vec2{1, 1}, tint)
     }
 
     overlay := vneui.Rect{0, 0, cfg.design_width, cfg.design_height}
-    vneui.ui_panel_color(ctx, overlay, vneui.ui_color(0, 0, 0, menu_cfg.overlay_alpha))
+    vneui.ui_panel_color(ctx, overlay, vneui.ui_color(0, 0, 0, menu_overlay_alpha_for_page(g)))
 
     if g.menu.page == .Main {
         ui_layer_draw_start_menu(ctx, theme, g)
@@ -37,12 +38,16 @@ ui_layer_draw_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Ga
 }
 
 ui_layer_draw_start_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Game_State) {
-    rect := menu_center_rect(menu_cfg.start_w, menu_cfg.start_h)
-    style := vneui.ui_style_from_theme(theme)
-    style.panel_color = ui_color_from_rgba(menu_cfg.panel_color)
-    vneui.ui_panel_color_style(ctx, rect, style.panel_color, style)
+    start_w := menu_dim(menu_cfg.start_w, menu_cfg.start_w_pct, cfg.design_width)
+    start_h := menu_dim(menu_cfg.start_h, menu_cfg.start_h_pct, cfg.design_height)
+    rect := menu_start_rect(start_w, start_h)
+    if menu_cfg.start_panel {
+        style := vneui.ui_style_from_theme(theme)
+        style.panel_color = ui_color_from_rgba(menu_panel_color_for_page(g))
+        vneui.ui_panel_color_style(ctx, rect, style.panel_color, style)
+    }
 
-    layout := menu_layout_from_cfg(ctx)
+    layout := menu_layout_from_cfg_start(ctx)
     items := make([dynamic]vneui.UI_Menu_Item, 0, 4)
     defer delete(items)
 
@@ -75,10 +80,14 @@ ui_layer_draw_start_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, 
 }
 
 ui_layer_draw_pause_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Game_State) {
-    rect := menu_center_rect(menu_cfg.panel_w, menu_cfg.panel_h)
-    style := vneui.ui_style_from_theme(theme)
-    style.panel_color = ui_color_from_rgba(menu_cfg.panel_color)
-    vneui.ui_panel_color_style(ctx, rect, style.panel_color, style)
+    panel_w := menu_dim(menu_cfg.panel_w, menu_cfg.panel_w_pct, cfg.design_width)
+    panel_h := menu_dim(menu_cfg.panel_h, menu_cfg.panel_h_pct, cfg.design_height)
+    rect := menu_pause_rect(panel_w, panel_h)
+    if menu_cfg.pause_panel {
+        style := vneui.ui_style_from_theme(theme)
+        style.panel_color = ui_color_from_rgba(menu_panel_color_for_page(g))
+        vneui.ui_panel_color_style(ctx, rect, style.panel_color, style)
+    }
 
     layout := menu_layout_from_cfg(ctx)
     items := make([dynamic]vneui.UI_Menu_Item, 0, 4)
@@ -106,9 +115,11 @@ ui_layer_draw_pause_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, 
 }
 
 ui_layer_draw_settings_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Game_State) {
-    rect := menu_center_rect(menu_cfg.settings_w, menu_cfg.settings_h)
+    settings_w := menu_dim(menu_cfg.settings_w, menu_cfg.settings_w_pct, cfg.design_width)
+    settings_h := menu_dim(menu_cfg.settings_h, menu_cfg.settings_h_pct, cfg.design_height)
+    rect := menu_settings_rect(settings_w, settings_h)
     style := vneui.ui_style_from_theme(theme)
-    style.panel_color = ui_color_from_rgba(menu_cfg.panel_color)
+    style.panel_color = ui_color_from_rgba(menu_panel_color_for_page(g))
     vneui.ui_panel_color_style(ctx, rect, style.panel_color, style)
 
     prev := g_settings
@@ -157,6 +168,8 @@ ui_layer_draw_settings_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Them
     lay.gap = menu_cfg.gap
     lay.row_h = menu_cfg.button_h
     lay.button_h = menu_cfg.button_h
+    if menu_cfg.settings_label_w > 0 do lay.label_w = menu_cfg.settings_label_w
+    if menu_cfg.settings_value_w > 0 do lay.value_w = menu_cfg.settings_value_w
 
     action := ui_preferences_menu_scroll(ctx, rect, prefs, lay)
     if action == .Reset {
@@ -420,6 +433,124 @@ menu_layout_from_cfg :: proc(ctx: ^vneui.UI_Context) -> vneui.UI_Menu_Layout {
     layout.max_button_w = menu_cfg.max_button_w
     layout.align_h = menu_align_from_cfg(menu_cfg.align_h)
     return layout
+}
+
+menu_layout_from_cfg_start :: proc(ctx: ^vneui.UI_Context) -> vneui.UI_Menu_Layout {
+    layout := menu_layout_from_cfg(ctx)
+    layout.align_h = menu_align_from_cfg(menu_cfg.start_align_h)
+    return layout
+}
+
+menu_start_rect :: proc(w, h: f32) -> vneui.Rect {
+    anchor := strings.to_lower(menu_cfg.start_anchor)
+    defer delete(anchor)
+    offset_x := menu_dim(menu_cfg.start_x, menu_cfg.start_x_pct, cfg.design_width)
+    offset_y := menu_dim(menu_cfg.start_y, menu_cfg.start_y_pct, cfg.design_height)
+    x := (cfg.design_width - w) * 0.5 + offset_x
+    switch anchor {
+    case "left":
+        x = offset_x
+    case "right":
+        x = cfg.design_width - w - offset_x
+    }
+    y := (cfg.design_height - h) * 0.5 + offset_y
+    return vneui.Rect{x, y, w, h}
+}
+
+menu_pause_rect :: proc(w, h: f32) -> vneui.Rect {
+    anchor := strings.to_lower(menu_cfg.pause_anchor)
+    defer delete(anchor)
+    offset_x := menu_dim(menu_cfg.pause_x, menu_cfg.pause_x_pct, cfg.design_width)
+    offset_y := menu_dim(menu_cfg.pause_y, menu_cfg.pause_y_pct, cfg.design_height)
+    x := (cfg.design_width - w) * 0.5 + offset_x
+    switch anchor {
+    case "left":
+        x = offset_x
+    case "right":
+        x = cfg.design_width - w - offset_x
+    }
+    y := (cfg.design_height - h) * 0.5 + offset_y
+    return vneui.Rect{x, y, w, h}
+}
+
+menu_settings_rect :: proc(w, h: f32) -> vneui.Rect {
+    anchor := strings.to_lower(menu_cfg.settings_anchor)
+    defer delete(anchor)
+    offset_x := menu_dim(menu_cfg.settings_x, menu_cfg.settings_x_pct, cfg.design_width)
+    offset_y := menu_dim(menu_cfg.settings_y, menu_cfg.settings_y_pct, cfg.design_height)
+    x := (cfg.design_width - w) * 0.5 + offset_x
+    switch anchor {
+    case "left":
+        x = offset_x
+    case "right":
+        x = cfg.design_width - w - offset_x
+    }
+    y := (cfg.design_height - h) * 0.5 + offset_y
+    return vneui.Rect{x, y, w, h}
+}
+
+menu_dim :: proc(value, pct, total: f32) -> f32 {
+    if pct > 0 {
+        return total * pct
+    }
+    return value
+}
+
+menu_bg_tex_for_page :: proc(g: ^Game_State) -> u32 {
+    if g == nil do return 0
+    switch g.menu.page {
+    case .Main:
+        if g.menu_bg_start_tex != 0 do return g.menu_bg_start_tex
+    case .Settings:
+        if g.menu_bg_settings_tex != 0 do return g.menu_bg_settings_tex
+    case .Pause:
+        if g.menu_bg_pause_tex != 0 do return g.menu_bg_pause_tex
+    case .None:
+        // fallthrough to default background
+    }
+    return g.menu_bg_tex
+}
+
+menu_bg_alpha_for_page :: proc(g: ^Game_State) -> f32 {
+    if g == nil do return menu_cfg.menu_bg_alpha
+    switch g.menu.page {
+    case .Main:
+        if menu_cfg.menu_bg_start_alpha > 0 do return menu_cfg.menu_bg_start_alpha
+    case .Settings:
+        if menu_cfg.menu_bg_settings_alpha > 0 do return menu_cfg.menu_bg_settings_alpha
+    case .Pause:
+        if menu_cfg.menu_bg_pause_alpha > 0 do return menu_cfg.menu_bg_pause_alpha
+    case .None:
+    }
+    return menu_cfg.menu_bg_alpha
+}
+
+menu_overlay_alpha_for_page :: proc(g: ^Game_State) -> f32 {
+    if g == nil do return menu_cfg.overlay_alpha
+    switch g.menu.page {
+    case .Main:
+        if menu_cfg.menu_overlay_start_alpha >= 0 do return menu_cfg.menu_overlay_start_alpha
+    case .Settings:
+        if menu_cfg.menu_overlay_settings_alpha >= 0 do return menu_cfg.menu_overlay_settings_alpha
+    case .Pause:
+        if menu_cfg.menu_overlay_pause_alpha >= 0 do return menu_cfg.menu_overlay_pause_alpha
+    case .None:
+    }
+    return menu_cfg.overlay_alpha
+}
+
+menu_panel_color_for_page :: proc(g: ^Game_State) -> [4]f32 {
+    if g == nil do return menu_cfg.panel_color
+    switch g.menu.page {
+    case .Main:
+        if menu_cfg.menu_panel_color_start_set do return menu_cfg.menu_panel_color_start
+    case .Settings:
+        if menu_cfg.menu_panel_color_settings_set do return menu_cfg.menu_panel_color_settings
+    case .Pause:
+        if menu_cfg.menu_panel_color_pause_set do return menu_cfg.menu_panel_color_pause
+    case .None:
+    }
+    return menu_cfg.panel_color
 }
 
 menu_align_from_cfg :: proc(value: string) -> vneui.UI_Align {

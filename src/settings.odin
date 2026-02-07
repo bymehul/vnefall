@@ -34,7 +34,7 @@ settings_init_defaults :: proc() {
     g_settings.volume_sfx    = cfg.volume_sfx
     g_settings.volume_voice  = cfg.volume_voice
     g_settings.text_speed    = ui_cfg.text_speed
-    g_settings.fullscreen    = false
+    g_settings.fullscreen    = (cfg.window_mode == "fullscreen" || cfg.window_mode == "borderless")
 }
 
 settings_set_path :: proc(path: string) {
