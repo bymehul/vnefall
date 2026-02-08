@@ -2,6 +2,8 @@
 
 Vnefall is a simple, no-nonsense visual novel engine. It's built in Odin using SDL2 and OpenGL 3.3.
 
+**Status: Under development. Not recommended for production yet; updates may be less frequent due to studies. (Built faster with AI assistance.)**
+
 ![Vnefall Demo](demo_vnefall.gif)
 
 ## Features
