@@ -24,6 +24,7 @@ Video_Play_Options :: struct {
     use_rect: bool,
     fit: string,    // "stretch" | "contain" | "cover"
     align: string,  // "center" | "top" | "bottom" | "left" | "right" | "topleft" | "topright" | "bottomleft" | "bottomright"
+    audio_enabled: bool,
 }
 
 Video_State :: struct {
@@ -41,6 +42,8 @@ Video_State :: struct {
     use_rect: bool,
     fit: string,
     align: string,
+    audio_enabled: bool,
+    audio_warned: bool,
 
     handle: ^vnef_video.VNEVideo,
     info: vnef_video.VNEVideoInfo,
@@ -170,6 +173,8 @@ video_stop :: proc(v: ^Video_State) {
     v.playing = false
     v.wait_for_click = false
     v.use_rect = false
+    v.audio_enabled = false
+    v.audio_warned = false
     if v.fit != "" {
         delete(v.fit)
         v.fit = ""
@@ -288,6 +293,8 @@ video_play :: proc(v: ^Video_State, path: string, opts: Video_Play_Options) -> b
     } else {
         v.align = strings.clone("center")
     }
+    v.audio_enabled = opts.audio_enabled
+    v.audio_warned = false
     
     // fps fallback
     if info.fps_num > 0 && info.fps_den > 0 {

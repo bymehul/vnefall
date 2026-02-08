@@ -2,6 +2,7 @@ package vnefall
 
 import "core:strings"
 import "core:fmt"
+import "core:os"
 import vneui "vneui:src"
 
 ui_layer_draw_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Game_State) {
@@ -32,6 +33,10 @@ ui_layer_draw_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Ga
     }
     if g.menu.page == .Settings {
         ui_layer_draw_settings_menu(ctx, theme, g)
+        return
+    }
+    if g.menu.page == .Save {
+        ui_layer_draw_save_menu(ctx, theme, g)
         return
     }
     ui_layer_draw_pause_menu(ctx, theme, g)
@@ -94,10 +99,14 @@ ui_layer_draw_pause_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, 
     defer delete(items)
 
     resume_id := vneui.ui_id_from_string("menu_resume")
+    save_id := vneui.ui_id_from_string("menu_save")
     settings_id := vneui.ui_id_from_string("menu_settings")
     quit_id := vneui.ui_id_from_string("menu_quit")
 
     append(&items, vneui.UI_Menu_Item{id = resume_id, label = menu_cfg.btn_resume})
+    if menu_cfg.show_save {
+        append(&items, vneui.UI_Menu_Item{id = save_id, label = menu_cfg.btn_save})
+    }
     append(&items, vneui.UI_Menu_Item{id = settings_id, label = menu_cfg.btn_settings})
     if menu_cfg.show_quit {
         append(&items, vneui.UI_Menu_Item{id = quit_id, label = menu_cfg.btn_quit})
@@ -107,11 +116,71 @@ ui_layer_draw_pause_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, 
     switch res.id {
     case resume_id:
         menu_close(g)
+    case save_id:
+        menu_open_save(g)
     case settings_id:
         menu_open_settings(g)
     case quit_id:
         g.running = false
     }
+}
+
+SAVE_PAGE_COUNT :: 10
+SAVE_SLOTS_PER_PAGE :: 6
+
+ui_layer_draw_save_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Game_State) {
+    save_w := menu_dim(menu_cfg.save_w, menu_cfg.save_w_pct, cfg.design_width)
+    save_h := menu_dim(menu_cfg.save_h, menu_cfg.save_h_pct, cfg.design_height)
+    rect := menu_save_rect(save_w, save_h)
+    if menu_cfg.save_panel {
+        style := vneui.ui_style_from_theme(theme)
+        style.panel_color = ui_color_from_rgba(menu_panel_color_for_page(g))
+        vneui.ui_panel_color_style(ctx, rect, style.panel_color, style)
+    }
+
+    // Page controls
+    layout := vneui.ui_save_list_layout_default(ctx)
+    layout.padding = menu_cfg.padding
+    layout.gap = menu_cfg.gap
+    if layout.slot_h <= 0 do layout.slot_h = theme.text_line_height * 2.4 + theme.padding * 1.2
+
+    slots := menu_build_save_slots(g.menu.save_page)
+    defer menu_free_save_slots(&slots)
+
+    cfg_save := vneui.UI_Save_List_Config{
+        title = menu_cfg.save_title,
+        mode = .Save,
+        show_back = false,
+        back_label = menu_cfg.btn_back,
+    }
+    res := vneui.ui_save_list_menu(ctx, rect, slots[:], cfg_save, layout, &g.save_list_state)
+    if res.action == .Select && res.index >= 0 {
+        slot_name := menu_save_slot_name(g.menu.save_page, res.index)
+        defer delete(slot_name)
+        _ = save_game_to_slot(g, &g.script, slot_name)
+    }
+
+    // Page + Back footer
+    footer_h := layout.button_h
+    footer_rect := vneui.Rect{rect.x, rect.y + rect.h - footer_h - layout.padding, rect.w - layout.padding * 2, footer_h}
+    vneui.ui_layout_begin(ctx, footer_rect, .Row, 0, layout.gap)
+    prev_label := "< Prev"
+    next_label := "Next >"
+    page_label := fmt.aprintf("Page %d / %d", g.menu.save_page+1, SAVE_PAGE_COUNT)
+    defer delete(page_label)
+    btn_w := (footer_rect.w - layout.gap*3) * 0.2
+    if btn_w < 80 do btn_w = 80
+    if vneui.ui_button_layout(ctx, prev_label, btn_w, layout.button_h) {
+        if g.menu.save_page > 0 do g.menu.save_page -= 1
+    }
+    vneui.ui_label_layout(ctx, page_label, footer_rect.w - btn_w*3 - layout.gap*2, layout.button_h)
+    if vneui.ui_button_layout(ctx, menu_cfg.btn_back, btn_w, layout.button_h) {
+        menu_open_pause(g)
+    }
+    if vneui.ui_button_layout(ctx, next_label, btn_w, layout.button_h) {
+        if g.menu.save_page < SAVE_PAGE_COUNT-1 do g.menu.save_page += 1
+    }
+    vneui.ui_layout_end(ctx)
 }
 
 ui_layer_draw_settings_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Game_State) {
@@ -493,6 +562,72 @@ menu_settings_rect :: proc(w, h: f32) -> vneui.Rect {
     return vneui.Rect{x, y, w, h}
 }
 
+menu_save_rect :: proc(w, h: f32) -> vneui.Rect {
+    anchor := strings.to_lower(menu_cfg.save_anchor)
+    defer delete(anchor)
+    offset_x := menu_dim(menu_cfg.save_x, menu_cfg.save_x_pct, cfg.design_width)
+    offset_y := menu_dim(menu_cfg.save_y, menu_cfg.save_y_pct, cfg.design_height)
+    x := (cfg.design_width - w) * 0.5 + offset_x
+    switch anchor {
+    case "left":
+        x = offset_x
+    case "right":
+        x = cfg.design_width - w - offset_x
+    }
+    y := (cfg.design_height - h) * 0.5 + offset_y
+    return vneui.Rect{x, y, w, h}
+}
+
+menu_save_slot_name :: proc(page, index: int) -> string {
+    return fmt.aprintf("save_p%02d_s%02d", page+1, index+1)
+}
+
+menu_build_save_slots :: proc(page: int) -> [dynamic]vneui.UI_Save_Slot {
+    slots := make([dynamic]vneui.UI_Save_Slot, 0, SAVE_SLOTS_PER_PAGE)
+    p := page
+    if p < 0 do p = 0
+    if p >= SAVE_PAGE_COUNT do p = SAVE_PAGE_COUNT-1
+    for i := 0; i < SAVE_SLOTS_PER_PAGE; i += 1 {
+        slot_name := menu_save_slot_name(p, i)
+        path := strings.concatenate({cfg.path_saves, slot_name, ".sthiti"})
+        exists := os.is_file(path)
+        delete(path)
+        
+        title := ""
+        subtitle := ""
+        if exists {
+            title = fmt.aprintf("Slot %02d", p*SAVE_SLOTS_PER_PAGE+i+1)
+            subtitle = strings.clone("Saved")
+        } else {
+            title = fmt.aprintf("Empty Slot %02d", p*SAVE_SLOTS_PER_PAGE+i+1)
+            subtitle = strings.clone("")
+        }
+        
+        slot := vneui.UI_Save_Slot{
+            id = vneui.ui_id_from_string(slot_name),
+            title = title,
+            subtitle = subtitle,
+            timestamp = strings.clone(""),
+            thumbnail_id = 0,
+            disabled = false,
+        }
+        append(&slots, slot)
+        delete(slot_name)
+    }
+    return slots
+}
+
+menu_free_save_slots :: proc(slots: ^[dynamic]vneui.UI_Save_Slot) {
+    if slots == nil do return
+    for i := 0; i < len(slots^); i += 1 {
+        slot := &slots^[i]
+        if slot.title != "" do delete(slot.title)
+        if slot.subtitle != "" do delete(slot.subtitle)
+        if slot.timestamp != "" do delete(slot.timestamp)
+    }
+    delete(slots^)
+}
+
 menu_dim :: proc(value, pct, total: f32) -> f32 {
     if pct > 0 {
         return total * pct
@@ -507,7 +642,7 @@ menu_bg_tex_for_page :: proc(g: ^Game_State) -> u32 {
         if g.menu_bg_start_tex != 0 do return g.menu_bg_start_tex
     case .Settings:
         if g.menu_bg_settings_tex != 0 do return g.menu_bg_settings_tex
-    case .Pause:
+    case .Pause, .Save:
         if g.menu_bg_pause_tex != 0 do return g.menu_bg_pause_tex
     case .None:
         // fallthrough to default background
@@ -522,7 +657,7 @@ menu_bg_alpha_for_page :: proc(g: ^Game_State) -> f32 {
         if menu_cfg.menu_bg_start_alpha > 0 do return menu_cfg.menu_bg_start_alpha
     case .Settings:
         if menu_cfg.menu_bg_settings_alpha > 0 do return menu_cfg.menu_bg_settings_alpha
-    case .Pause:
+    case .Pause, .Save:
         if menu_cfg.menu_bg_pause_alpha > 0 do return menu_cfg.menu_bg_pause_alpha
     case .None:
     }
@@ -536,7 +671,7 @@ menu_overlay_alpha_for_page :: proc(g: ^Game_State) -> f32 {
         if menu_cfg.menu_overlay_start_alpha >= 0 do return menu_cfg.menu_overlay_start_alpha
     case .Settings:
         if menu_cfg.menu_overlay_settings_alpha >= 0 do return menu_cfg.menu_overlay_settings_alpha
-    case .Pause:
+    case .Pause, .Save:
         if menu_cfg.menu_overlay_pause_alpha >= 0 do return menu_cfg.menu_overlay_pause_alpha
     case .None:
     }
@@ -550,7 +685,7 @@ menu_panel_color_for_page :: proc(g: ^Game_State) -> [4]f32 {
         if menu_cfg.menu_panel_color_start_set do return menu_cfg.menu_panel_color_start
     case .Settings:
         if menu_cfg.menu_panel_color_settings_set do return menu_cfg.menu_panel_color_settings
-    case .Pause:
+    case .Pause, .Save:
         if menu_cfg.menu_panel_color_pause_set do return menu_cfg.menu_panel_color_pause
     case .None:
     }

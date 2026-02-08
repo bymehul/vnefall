@@ -862,6 +862,29 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
             return
         }
 
+        // Enforce .video only (convert beforehand)
+        {
+            base := c.who
+            if idx := strings.last_index(base, "/"); idx != -1 {
+                base = base[idx+1:]
+            }
+            if idx := strings.last_index(base, "\\"); idx != -1 {
+                base = base[idx+1:]
+            }
+            ext := ""
+            if dot := strings.last_index(base, "."); dot != -1 {
+                ext = strings.to_lower(base[dot:])
+            }
+            if ext != "" && ext != ".video" {
+                fmt.eprintln("[script] movie: unsupported extension (use .video):", ext)
+                s.ip += 1
+                return
+            }
+            if ext != "" {
+                delete(ext)
+            }
+        }
+
         // Build video path
         path := ""
         if strings.has_prefix(c.who, "/") || strings.has_prefix(c.who, "./") || strings.has_prefix(c.who, "../") || strings.contains(c.who, ":\\") {
@@ -1379,67 +1402,7 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
         s.ip += 1
 
     case .Save:
-        // Ensure saves directory exists
-        if !os.is_dir(cfg.path_saves) {
-            os.make_directory(cfg.path_saves)
-        }
-        
-        // Convert Script state to Sthiti state
-        save := sthiti.save_state_init()
-        defer sthiti.save_state_destroy(&save)
-        
-        save.script_path = strings.clone(s.path)
-        save.script_ip   = i32(s.ip) // Save EXACT current index (don't skip)
-        if s.bg_path != "" do save.bg_path = strings.clone(s.bg_path)
-        save.bg_blur_base = state.bg_blur_base
-        save.bg_blur_value = state.bg_blur_strength
-        save.bg_blur_override = state.bg_blur_override_active
-        
-        // Save current textbox state
-        save.textbox_vis = state.textbox.visible
-        if state.textbox.speaker != "" do save.speaker = strings.clone(state.textbox.speaker)
-        if state.textbox.text != ""    do save.textbox_text = strings.clone(state.textbox.text)
-
-        // Save audio state (asset names)
-        save.music_path = audio_get_music_asset_if_playing(&state.audio)
-        save.ambience_path = audio_get_ambience_asset_if_playing(&state.audio)
-        save.voice_path = audio_get_voice_asset_if_playing(&state.audio)
-        save.sfx_paths = audio_get_sfx_assets_if_playing(&state.audio)
-
-        // Save choice menu state
-        save.choice_active = state.choice.active
-        save.choice_selected = i32(state.choice.selected)
-        for opt in state.choice.options {
-            c_opt: sthiti.Choice_Option_Save
-            c_opt.text  = strings.clone(opt.text)
-            c_opt.label = strings.clone(opt.label)
-            append(&save.choice_options, c_opt)
-        }
-        
-        for k, v in s.variables {
-            #partial switch val in v {
-            case int:    save.variables[strings.clone(k)] = i32(val)
-            case string: save.variables[strings.clone(k)] = strings.clone(val)
-            }
-        }
-        
-        // Save character states (v4)
-        for _, char in g_characters {
-            if char.visible {
-                c_save: sthiti.Character_Save_State
-                c_save.name        = strings.clone(char.name)
-                c_save.sprite_path = strings.clone(char.sprite_path)
-                c_save.pos_name    = strings.clone(char.pos_name)
-                c_save.z           = char.z
-                append(&save.characters, c_save)
-            }
-        }
-        
-        
-        path := strings.concatenate({cfg.path_saves, c.who, ".sthiti"})
-        defer delete(path)
-        sthiti.save_to_file(path, save)
-        fmt.printf("[script] Game saved successfully to %s\n", path)
+        _ = save_game_to_slot(state, s, c.who)
         s.ip += 1
 
     case .Load:
@@ -1453,6 +1416,75 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
     case .End:
         state.running = false
     }
+}
+
+save_game_to_slot :: proc(state: ^Game_State, s: ^Script, slot: string) -> bool {
+    if state == nil || s == nil || slot == "" do return false
+    // Ensure saves directory exists
+    if !os.is_dir(cfg.path_saves) {
+        os.make_directory(cfg.path_saves)
+    }
+
+    // Convert Script state to Sthiti state
+    save := sthiti.save_state_init()
+    defer sthiti.save_state_destroy(&save)
+
+    save.script_path = strings.clone(s.path)
+    save.script_ip   = i32(s.ip) // Save EXACT current index (don't skip)
+    if s.bg_path != "" do save.bg_path = strings.clone(s.bg_path)
+    save.bg_blur_base = state.bg_blur_base
+    save.bg_blur_value = state.bg_blur_strength
+    save.bg_blur_override = state.bg_blur_override_active
+
+    // Save current textbox state
+    save.textbox_vis = state.textbox.visible
+    if state.textbox.speaker != "" do save.speaker = strings.clone(state.textbox.speaker)
+    if state.textbox.text != ""    do save.textbox_text = strings.clone(state.textbox.text)
+
+    // Save audio state (asset names)
+    save.music_path = audio_get_music_asset_if_playing(&state.audio)
+    save.ambience_path = audio_get_ambience_asset_if_playing(&state.audio)
+    save.voice_path = audio_get_voice_asset_if_playing(&state.audio)
+    save.sfx_paths = audio_get_sfx_assets_if_playing(&state.audio)
+
+    // Save choice menu state
+    save.choice_active = state.choice.active
+    save.choice_selected = i32(state.choice.selected)
+    for opt in state.choice.options {
+        c_opt: sthiti.Choice_Option_Save
+        c_opt.text  = strings.clone(opt.text)
+        c_opt.label = strings.clone(opt.label)
+        append(&save.choice_options, c_opt)
+    }
+
+    for k, v in s.variables {
+        #partial switch val in v {
+        case int:    save.variables[strings.clone(k)] = i32(val)
+        case string: save.variables[strings.clone(k)] = strings.clone(val)
+        }
+    }
+
+    // Save character states (v4)
+    for _, char in g_characters {
+        if char.visible {
+            c_save: sthiti.Character_Save_State
+            c_save.name        = strings.clone(char.name)
+            c_save.sprite_path = strings.clone(char.sprite_path)
+            c_save.pos_name    = strings.clone(char.pos_name)
+            c_save.z           = char.z
+            append(&save.characters, c_save)
+        }
+    }
+
+    path := strings.concatenate({cfg.path_saves, slot, ".sthiti"})
+    defer delete(path)
+    ok := sthiti.save_to_file(path, save)
+    if ok {
+        fmt.printf("[script] Game saved successfully to %s\n", path)
+    } else {
+        fmt.eprintln("[script] Save failed:", path)
+    }
+    return ok
 }
 
 evaluate_complex_expression :: proc(s: ^Script, expr: string) -> Value {

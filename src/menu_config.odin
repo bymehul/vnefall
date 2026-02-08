@@ -81,7 +81,9 @@ Menu_Config :: struct {
 
     pause_title:   string,
     settings_title: string,
+    save_title:    string,
     btn_resume:    string,
+    btn_save:      string,
     btn_settings:  string,
     btn_quit:      string,
     btn_back:      string,
@@ -89,6 +91,18 @@ Menu_Config :: struct {
 
     show_quit:     bool,
     show_reset:    bool,
+    show_save:     bool,
+
+    save_w:        f32,
+    save_h:        f32,
+    save_w_pct:    f32,
+    save_h_pct:    f32,
+    save_anchor:   string,
+    save_x:        f32,
+    save_y:        f32,
+    save_x_pct:    f32,
+    save_y_pct:    f32,
+    save_panel:    bool,
 
     label_master:  string,
     label_music:   string,
@@ -175,7 +189,9 @@ menu_config_init_defaults :: proc() {
 
     menu_cfg.pause_title    = strings.clone("Paused")
     menu_cfg.settings_title = strings.clone("Settings")
+    menu_cfg.save_title     = strings.clone("Save")
     menu_cfg.btn_resume   = strings.clone("Resume")
+    menu_cfg.btn_save     = strings.clone("Save")
     menu_cfg.btn_settings = strings.clone("Settings")
     menu_cfg.btn_quit     = strings.clone("Quit")
     menu_cfg.btn_back     = strings.clone("Back")
@@ -183,6 +199,18 @@ menu_config_init_defaults :: proc() {
 
     menu_cfg.show_quit  = true
     menu_cfg.show_reset = true
+    menu_cfg.show_save  = true
+
+    menu_cfg.save_w       = 760
+    menu_cfg.save_h       = 560
+    menu_cfg.save_w_pct   = 0
+    menu_cfg.save_h_pct   = 0
+    menu_cfg.save_anchor  = strings.clone("center")
+    menu_cfg.save_x       = 0
+    menu_cfg.save_y       = 0
+    menu_cfg.save_x_pct   = 0
+    menu_cfg.save_y_pct   = 0
+    menu_cfg.save_panel   = true
 
     menu_cfg.label_master     = strings.clone("Master Volume")
     menu_cfg.label_music      = strings.clone("Music")
@@ -419,9 +447,15 @@ menu_config_apply :: proc(path: string, warn_missing: bool) -> bool {
         case "menu_settings_title":
             delete(menu_cfg.settings_title)
             menu_cfg.settings_title = strings.clone(strings.trim(val, "\""))
+        case "menu_save_title":
+            delete(menu_cfg.save_title)
+            menu_cfg.save_title = strings.clone(strings.trim(val, "\""))
         case "menu_btn_resume":
             delete(menu_cfg.btn_resume)
             menu_cfg.btn_resume = strings.clone(strings.trim(val, "\""))
+        case "menu_btn_save":
+            delete(menu_cfg.btn_save)
+            menu_cfg.btn_save = strings.clone(strings.trim(val, "\""))
         case "menu_btn_settings":
             delete(menu_cfg.btn_settings)
             menu_cfg.btn_settings = strings.clone(strings.trim(val, "\""))
@@ -439,6 +473,38 @@ menu_config_apply :: proc(path: string, warn_missing: bool) -> bool {
             menu_cfg.show_quit = parse_bool(val)
         case "menu_show_reset":
             menu_cfg.show_reset = parse_bool(val)
+        case "menu_show_save":
+            menu_cfg.show_save = parse_bool(val)
+
+        case "menu_save_w":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.save_w = v
+        case "menu_save_h":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.save_h = v
+        case "menu_save_w_pct":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.save_w_pct = v
+        case "menu_save_h_pct":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.save_h_pct = v
+        case "menu_save_anchor":
+            delete(menu_cfg.save_anchor)
+            menu_cfg.save_anchor = strings.clone(strings.trim(val, "\""))
+        case "menu_save_x":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.save_x = v
+        case "menu_save_y":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.save_y = v
+        case "menu_save_x_pct":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.save_x_pct = v
+        case "menu_save_y_pct":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.save_y_pct = v
+        case "menu_save_panel":
+            menu_cfg.save_panel = parse_bool(val)
 
         case "label_master":
             delete(menu_cfg.label_master)
@@ -511,6 +577,10 @@ menu_config_load_all :: proc(base_dir: string) -> bool {
     defer delete(settings_path)
     menu_config_apply(settings_path, false)
 
+    save_path := strings.concatenate({base_dir, "menu_save.vnef"})
+    defer delete(save_path)
+    menu_config_apply(save_path, false)
+
     return true
 }
 
@@ -531,7 +601,9 @@ menu_config_cleanup :: proc() {
     delete(menu_cfg.load_slot)
     delete(menu_cfg.pause_title)
     delete(menu_cfg.settings_title)
+    delete(menu_cfg.save_title)
     delete(menu_cfg.btn_resume)
+    delete(menu_cfg.btn_save)
     delete(menu_cfg.btn_settings)
     delete(menu_cfg.btn_quit)
     delete(menu_cfg.btn_back)
@@ -546,4 +618,5 @@ menu_config_cleanup :: proc() {
     delete(menu_cfg.section_audio)
     delete(menu_cfg.section_reading)
     delete(menu_cfg.section_display)
+    delete(menu_cfg.save_anchor)
 }

@@ -12,6 +12,7 @@ libvnef_video.so
 # Build artifacts
 bin/
 utils/vnef-video/build/
+ref/
 
 # OS files
 .DS_Store

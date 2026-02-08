@@ -28,7 +28,7 @@ movie stop
 - `audio=on|off`: auto-plays a matching audio file. Default is `on`.
 
 ## Notes
-- If the filename has no extension, `.video` is assumed. If you pass `file.webm` or `file.mp4`, that exact file is used.
+- If the filename has no extension, `.video` is assumed. **Only `.video` is supported**; other extensions are rejected. Convert with `vnef-tools` first.
 - Video files are loaded from `path_videos` in `config.vnef` unless an explicit path is used.
 - Video audio is auto-mapped from `path_video_audio/<basename>.ogg` when `audio=on`.
 - `.video` is the container produced by `vnef-tools` (WebM wrapped with a small header).

@@ -84,6 +84,11 @@ window_swap :: proc(w: ^Window) {
     sdl2.GL_SwapWindow(w.handle)
 }
 
+window_update_size :: proc(w: ^Window) {
+    if w == nil || w.handle == nil do return
+    sdl2.GetWindowSize(w.handle, &w.width, &w.height)
+}
+
 window_set_title :: proc(w: ^Window, title: string) {
     c_title := strings.clone_to_cstring(title)
     defer delete(c_title)

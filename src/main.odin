@@ -12,6 +12,7 @@ import "core:os"
 import "core:strings"
 import "core:mem"
 import SDL "vendor:sdl2"
+import vneui "vneui:src"
 
 VERSION :: "1.5.0"
 
@@ -67,6 +68,7 @@ Game_State :: struct {
     textbox:      Textbox_State,
     choice:       Choice_State,
     menu:         Menu_State,
+    save_list_state: vneui.UI_Save_List_State,
     last_tick:    u32,
 }
 
@@ -159,6 +161,7 @@ main :: proc() {
         g.last_tick = now
 
         input_poll(&g.input, &g.running)
+        window_update_size(&g.window)
         if g.input.menu_pressed {
             menu_toggle(&g)
         }

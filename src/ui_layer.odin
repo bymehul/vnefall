@@ -414,14 +414,19 @@ ui_render_text :: proc(r: ^Renderer, cmd: vneui.Draw_Command) {
         x = cmd.rect.x
     }
 
-    y := cmd.rect.y + size
+    // Baseline nudge: stbtt baked quads sit a bit high without this.
+    baseline_nudge := size * 0.2
+    if baseline_nudge < 1 do baseline_nudge = 1
+    if baseline_nudge > 6 do baseline_nudge = 6
+
+    y := cmd.rect.y + size - baseline_nudge
     switch cmd.align_v {
     case .Center:
-        y = cmd.rect.y + (cmd.rect.h + size) * 0.5
+        y = cmd.rect.y + (cmd.rect.h + size) * 0.5 - baseline_nudge
     case .End:
-        y = cmd.rect.y + cmd.rect.h
+        y = cmd.rect.y + cmd.rect.h - baseline_nudge
     case .Start:
-        y = cmd.rect.y + size
+        y = cmd.rect.y + size - baseline_nudge
     }
 
     renderer_draw_text(r, cmd.text, x, y, {cmd.color.r, cmd.color.g, cmd.color.b, cmd.color.a})

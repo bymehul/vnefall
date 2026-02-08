@@ -88,12 +88,26 @@ This update combines a simplified character system, Sthiti-DB persistence, and h
 
 ---
 
-## v1.5.5: Reading Flow Quality
+## v1.5.2: Video Tooling & Build Quality (Today)
+
+- [x] **Movie Extension Enforcement**: Only `.video` accepted; other extensions are rejected with clear errors.
+- [x] **Odin Video Builder**: `build_videos.odin` CLI added (Python kept as legacy fallback).
+- [x] **Bundled FFmpeg Detection**: `vnef-tools` uses `third_party/ffmpeg/bin` + `lib` when present.
+- [x] **Build Script Hook**: `build.sh --prep-videos` runs the Odin converter before compilation.
+- [x] **Docs Update**: Movie docs now clearly state `.video` requirement and conversion step.
+
+---
+
+## v1.5.5: Reading Flow Quality & Menu Polish
 
 - [ ] **Backlog**: A scrollable history window for reviewing previously read text.
 - [ ] **Auto-Advance**: Toggleable mode for automatic reading progression.
 - [ ] **Menu UI Polish**: Layout refinement, branding header styles, and improved focus/hover cues.
+- [ ] **Save Slot Thumbnails**: Capture and display preview images per slot.
+- [ ] **Main Menu Load UX**: Clear empty-state behavior + better feedback.
+- [ ] **Save Menu Polish**: Disabled styling for empty slots + clearer page indicator.
 - [ ] **Video Runtime Packaging**: Auto-copy `libvnef_video` next to the binary or embed an rpath so video playback works without manual `cp`.
+- [ ] **Video Pipeline Integration**: Conversion is manual (`--prep-videos`), with no auto-detect or missing-asset warnings yet.
 
 ---
 

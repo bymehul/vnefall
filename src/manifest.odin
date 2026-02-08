@@ -185,9 +185,31 @@ manifest_generate :: proc(script_path: string) -> (Manifest, bool) {
             }
 
             if path == "" do continue
-            ext := ".video"
-            if strings.contains(path, ".") do ext = ""
-            asset_full := strings.concatenate({path, ext})
+
+            base := path
+            if idx := strings.last_index(base, "/"); idx != -1 {
+                base = base[idx+1:]
+            }
+            if idx := strings.last_index(base, "\\"); idx != -1 {
+                base = base[idx+1:]
+            }
+            ext := ""
+            if dot := strings.last_index(base, "."); dot != -1 {
+                ext = strings.to_lower(base[dot:])
+            }
+            if ext != "" {
+                defer delete(ext)
+            }
+
+            asset_full := ""
+            if ext == "" {
+                asset_full = strings.concatenate({path, ".video"})
+            } else if ext == ".video" {
+                asset_full = strings.clone(path)
+            } else {
+                fmt.eprintln("[manifest] movie: unsupported extension (use .video):", ext)
+                continue
+            }
             defer delete(asset_full)
 
             if !contains_string(m.videos[:], asset_full) {
