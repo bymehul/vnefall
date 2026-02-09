@@ -49,11 +49,11 @@ ui_layer_build_and_render :: proc(g: ^Game_State, r: ^Renderer, w: ^Window, dt: 
     theme := ui_theme_from_config()
     vneui.ui_begin_frame(&ui_ctx, input, theme)
 
-    if g.textbox.visible {
+    if !g.menu.active && g.textbox.visible {
         ui_layer_draw_textbox(&ui_ctx, theme, &g.textbox, g.textbox_tex)
     }
 
-    if g.choice.active {
+    if !g.menu.active && g.choice.active {
         ui_layer_draw_choice_menu(&ui_ctx, theme, g)
     }
 

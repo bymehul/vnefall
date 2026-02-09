@@ -1,7 +1,6 @@
 # Menu base styling + shared assets
 
-# Overlay
-menu_overlay_alpha = 0.55
+# Panel color is RGBA (alpha is the last byte)
 menu_panel_color   = 0x151822F0
 
 # Backgrounds (full path or explicit project-relative path)
@@ -9,15 +8,21 @@ menu_bg_image = "demo/assets/images/witches/Library 1.png"
 menu_bg_start_image    = "demo/assets/images/witches/Library 1.png"
 menu_bg_pause_image    = "demo/assets/images/witches/House 6.png"
 menu_bg_settings_image = "demo/assets/images/witches/Workshop 1.png"
-menu_bg_alpha = 1.0
-menu_bg_start_alpha = 1.0
-menu_bg_pause_alpha = 0.85
-menu_bg_settings_alpha = 0.9
+
+
+# Subtle background float animation (optional)
+menu_bg_float = true
+menu_bg_float_px = 8
+menu_bg_float_speed = 0.2
+
 
 # Opening image (optional)
 menu_intro_image = "demo/assets/images/witches/Doorway.png"
 menu_intro_ms = 1200
 menu_intro_skip = true
+menu_intro_float = false
+menu_intro_float_px = 6
+menu_intro_float_speed = 0.25
 
 # Shared layout defaults
 menu_padding      = 12

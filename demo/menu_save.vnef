@@ -1,6 +1,7 @@
 # Save menu
 
 menu_save_title = "Save"
+menu_load_title = "Load"
 menu_btn_back   = "Back"
 
 menu_save_w      = 760

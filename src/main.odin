@@ -11,6 +11,7 @@ import "core:fmt"
 import "core:os"
 import "core:strings"
 import "core:mem"
+import "core:math"
 import SDL "vendor:sdl2"
 import vneui "vneui:src"
 
@@ -24,6 +25,49 @@ load_menu_bg_texture :: proc(label, path: string) -> u32 {
         return 0
     }
     return info.id
+}
+
+bg_float_offset :: proc(t, amp, speed: f32) -> (f32, f32, f32) {
+    speed_val := speed
+    amp_val := amp
+    if speed_val <= 0 do speed_val = 0.2
+    if amp_val < 0 do amp_val = 0
+    phase := t * speed_val * 6.2831853
+    dx := math.sin(phase) * amp_val
+    dy := math.cos(phase * 0.9) * amp_val
+    pad := amp_val
+    return dx, dy, pad
+}
+
+bg_draw_current :: proc(state: ^Game_State, r: ^Renderer) {
+    if state == nil || r == nil do return
+    if state.current_bg == 0 do return
+    if !state.bg_float_active || state.bg_float_px <= 0 {
+        renderer_draw_fullscreen(r, state.current_bg)
+        return
+    }
+    dx, dy, pad := bg_float_offset(state.bg_float_t, state.bg_float_px, state.bg_float_speed)
+    renderer_draw_texture(r, state.current_bg, -pad + dx, -pad + dy, r.width + pad*2, r.height + pad*2)
+}
+
+menu_draw_background :: proc(state: ^Game_State, r: ^Renderer) {
+    if state == nil || r == nil do return
+    tex := menu_bg_tex_for_page(state)
+    if tex == 0 do return
+    alpha := menu_bg_alpha_for_page(state)
+    if alpha <= 0 do return
+    x := f32(0)
+    y := f32(0)
+    w := r.width
+    h := r.height
+    if menu_cfg.menu_bg_float && menu_cfg.menu_bg_float_px > 0 {
+        dx, dy, pad := menu_float_offset(state.bg_float_t, menu_cfg.menu_bg_float_px, menu_cfg.menu_bg_float_speed)
+        x = -pad + dx
+        y = -pad + dy
+        w = r.width + pad*2
+        h = r.height + pad*2
+    }
+    renderer_draw_texture_tinted(r, tex, x, y, w, h, {1, 1, 1, alpha})
 }
 
 Choice_Option :: struct {
@@ -54,6 +98,10 @@ Game_State :: struct {
     bg_blur_base: f32,
     bg_blur_override_active: bool,
     bg_blur:     BG_Blur_State,
+    bg_float_active: bool,
+    bg_float_px: f32,
+    bg_float_speed: f32,
+    bg_float_t: f32,
     loading_tex:  u32,
     loading_active: bool,
     menu_bg_tex:  u32,
@@ -164,6 +212,7 @@ main :: proc() {
         now := SDL.GetTicks()
         dt  := f32(now - g.last_tick) / 1000.0
         g.last_tick = now
+        g.bg_float_t += dt
 
         input_poll(&g.input, &g.running)
         window_update_size(&g.window)
@@ -234,8 +283,8 @@ main :: proc() {
             if !bg_blur_init(&g.bg_blur, &g.renderer) {
                 if g.bg_transition.active {
                     bg_transition_draw(&g, &g.renderer)
-                } else if g.current_bg != 0 {
-                    renderer_draw_fullscreen(&g.renderer, g.current_bg)
+                } else {
+                    bg_draw_current(&g, &g.renderer)
                 }
             } else {
                 bg_blur_set_strength(&g.bg_blur, g.bg_blur_strength)
@@ -247,8 +296,8 @@ main :: proc() {
                     bg_blur_begin_capture(&g.bg_blur, &g.renderer)
                     if g.bg_transition.active {
                         bg_transition_draw(&g, &g.renderer)
-                    } else if g.current_bg != 0 {
-                        renderer_draw_fullscreen(&g.renderer, g.current_bg)
+                    } else {
+                        bg_draw_current(&g, &g.renderer)
                     }
                     bg_blur_end_capture(&g.bg_blur, &g.renderer, &g.window)
                     bg_blur_apply(&g.bg_blur, &g.renderer, &g.window, g.bg_blur.iterations)
@@ -261,8 +310,12 @@ main :: proc() {
             }
         } else if g.bg_transition.active {
             bg_transition_draw(&g, &g.renderer)
-        } else if g.current_bg != 0 {
-            renderer_draw_fullscreen(&g.renderer, g.current_bg)
+        } else {
+            bg_draw_current(&g, &g.renderer)
+        }
+
+        if g.menu.active && !g.menu_intro_active {
+            menu_draw_background(&g, &g.renderer)
         }
 
         if g.video.active && g.video.layer == .Background {
@@ -358,6 +411,7 @@ init_game :: proc(script_path: string) -> bool {
     if menu_cfg.menu_intro_image != "" {
         g.menu_intro_tex = load_menu_bg_texture("menu intro image", menu_cfg.menu_intro_image)
     }
+
 
     // Optional UI textures
     if ui_cfg.textbox_image != "" {

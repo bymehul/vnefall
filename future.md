@@ -121,9 +121,10 @@ This update combines a simplified character system, Sthiti-DB persistence, and h
 - [ ] **Backlog**: A scrollable history window for reviewing previously read text.
 - [ ] **Auto-Advance**: Toggleable mode for automatic reading progression.
 - [ ] **Menu UI Polish**: Layout refinement, branding header styles, and improved focus/hover cues.
+- [ ] **Menu UI/UX Adjustments**: Add an extra UI box/panel option and tighten spacing/typography across all menus.
 - [ ] **Save Slot Thumbnails**: Capture and display preview images per slot.
-- [ ] **Main Menu Load UX**: Clear empty-state behavior + better feedback.
-- [ ] **Save Menu Polish**: Disabled styling for empty slots + clearer page indicator.
+- [x] **Main Menu Load UX**: Start menu now opens the Load list (not a single quick-load slot).
+- [x] **Save/Load Menu Polish**: 10 pages × 6 slots, empty slots disabled in Load.
 - [ ] **Video Runtime Packaging**: Auto-copy `libvnef_video` next to the binary or embed an rpath so video playback works without manual `cp`.
 - [ ] **Video Pipeline Integration**: Conversion is manual (`--prep-videos`), with no auto-detect or missing-asset warnings yet.
 

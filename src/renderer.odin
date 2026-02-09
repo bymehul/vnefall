@@ -111,6 +111,7 @@ renderer_begin :: proc(r: ^Renderer, w: ^Window) {
     gl.Viewport(0, 0, w.width, w.height)
     gl.ClearColor(0.05, 0.05, 0.08, 1.0)
     gl.Clear(gl.COLOR_BUFFER_BIT)
+    gl.Disable(gl.SCISSOR_TEST)
     
     gl.UseProgram(r.shader)
     proj := ortho_matrix(0, cfg.design_width, cfg.design_height, 0)

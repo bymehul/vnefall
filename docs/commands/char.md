@@ -2,7 +2,7 @@
 
 As of v1.2.0, characters use a **Simplified Single-Sprite System** with responsive scaling, flexible extensions, and Z-indexing.
 
-## `char [Name] show [Sprite] at [Position] (z [Value])`
+## `char [Name] show [Sprite] at [Position] (z [Value]) (float...)`
 
 Shows a character sprite.
 
@@ -10,6 +10,9 @@ Shows a character sprite.
 - **[Sprite]**: The name of the image file. Defaults to `.png` if no extension is provided. (e.g., `happy`, `casual.jpg`).
 - **[Position]**: Responsive named positions (`left`, `center`, `right`) or a raw X coordinate.
 - **z [Value]** (Optional): Controls stacking order. Higher values draw in front of lower values.
+- **float / nofloat** (Optional): Enables or disables a gentle float animation for this character.
+- **float_px=8** (Optional): Float amplitude in pixels.
+- **float_speed=0.25** (Optional): Float speed in cycles/sec.
 
 **Examples:**
 ```vnef
@@ -25,6 +28,11 @@ char Alice show "photo.jpg" at left
 
 # Inline transition override
 char Alice show happy at left with slide 250
+
+# Float animation (gentle bob)
+char Alice show happy at center float
+char Alice show happy at center float_px=10 float_speed=0.2
+char Alice show happy at center nofloat
 ```
 
 ## `char [Name] hide`

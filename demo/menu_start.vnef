@@ -6,7 +6,6 @@ menu_btn_start   = "Start"
 menu_btn_load    = "Load"
 menu_show_load   = true
 menu_load_slot   = "auto_start"
-menu_overlay_start_alpha = 0.35
 menu_panel_color_start = 0x151822F0
 
 menu_start_w      = 520

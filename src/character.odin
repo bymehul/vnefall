@@ -34,6 +34,10 @@ Character :: struct {
     shake_t:      f32,
     shake_duration: f32,
     shake_amp:    f32,
+    float_active: bool,
+    float_px:     f32,
+    float_speed:  f32,
+    float_t:      f32,
 }
 
 // The "Backstage" (Dharana Cache)
@@ -77,7 +81,22 @@ character_offscreen_x :: proc(target_x, sprite_w: f32) -> f32 {
     return cfg.design_width + pad
 }
 
+character_float_offset :: proc(t, amp, speed: f32) -> (f32, f32) {
+    speed_val := speed
+    amp_val := amp
+    if speed_val <= 0 do speed_val = 0.2
+    if amp_val < 0 do amp_val = 0
+    phase := t * speed_val * 6.2831853
+    dx := math.sin(phase) * amp_val
+    dy := math.cos(phase * 0.9) * amp_val
+    return dx, dy
+}
+
 character_show :: proc(name: string, sprite_path: string, pos_name: string, z: i32 = 0) {
+    character_show_ex(name, sprite_path, pos_name, z, false, ui_cfg.char_float_default, ui_cfg.char_float_px, ui_cfg.char_float_speed)
+}
+
+character_show_ex :: proc(name: string, sprite_path: string, pos_name: string, z: i32, float_specified: bool, float_active: bool, float_px: f32, float_speed: f32) {
     target_x := character_get_position(pos_name)
     
     // Load texture with dimensions
@@ -183,6 +202,14 @@ character_show :: proc(name: string, sprite_path: string, pos_name: string, z: i
             char.shake_amp = ui_cfg.char_shake_px
             if char.shake_amp <= 0 do char.shake_amp = 8
         }
+        if float_specified {
+            char.float_active = float_active
+            char.float_px = float_px
+            char.float_speed = float_speed
+            char.float_t = 0
+        }
+        if char.float_px < 0 do char.float_px = 0
+        if char.float_speed <= 0 do char.float_speed = 0.2
         g_characters[name] = char
     } else {
         new_char := Character{
@@ -221,6 +248,19 @@ character_show :: proc(name: string, sprite_path: string, pos_name: string, z: i
             new_char.shake_amp = ui_cfg.char_shake_px
             if new_char.shake_amp <= 0 do new_char.shake_amp = 8
         }
+        if float_specified {
+            new_char.float_active = float_active
+            new_char.float_px = float_px
+            new_char.float_speed = float_speed
+            new_char.float_t = 0
+        } else {
+            new_char.float_active = ui_cfg.char_float_default
+            new_char.float_px = ui_cfg.char_float_px
+            new_char.float_speed = ui_cfg.char_float_speed
+            new_char.float_t = 0
+        }
+        if new_char.float_px < 0 do new_char.float_px = 0
+        if new_char.float_speed <= 0 do new_char.float_speed = 0.2
         g_characters[name] = new_char
     }
 }
@@ -322,8 +362,15 @@ character_draw_all :: proc(r: ^Renderer) {
             shake_x = math.sin(char.shake_t * 60) * amp
             shake_y = math.cos(char.shake_t * 53) * amp
         }
-        cx := char.pos_x + shake_x
-        cy := char.pos_y + shake_y
+        float_x: f32 = 0
+        float_y: f32 = 0
+        if char.float_active && char.float_px > 0 {
+            dx, dy := character_float_offset(char.float_t, char.float_px, char.float_speed)
+            float_x = dx
+            float_y = dy
+        }
+        cx := char.pos_x + shake_x + float_x
+        cy := char.pos_y + shake_y + float_y
 
         alpha := char.alpha
         scale: f32 = 1.0
@@ -460,6 +507,10 @@ character_update :: proc(dt: f32) {
                     char.shake_active = false
                 }
             }
+        }
+
+        if char.float_active && char.float_px > 0 {
+            char.float_t += dt
         }
 
         if char.pending_remove && !char.fade_active && !char.slide_active && !char.shake_active {

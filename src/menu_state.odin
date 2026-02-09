@@ -6,12 +6,14 @@ Menu_Page :: enum {
     Pause,
     Settings,
     Save,
+    Load,
 }
 
 Menu_State :: struct {
     active: bool,
     page:   Menu_Page,
     save_page: int,
+    return_page: Menu_Page,
 }
 
 menu_open_pause :: proc(g: ^Game_State) {
@@ -32,10 +34,18 @@ menu_open_settings :: proc(g: ^Game_State) {
     g.menu.page = .Settings
 }
 
-menu_open_save :: proc(g: ^Game_State) {
+menu_open_save :: proc(g: ^Game_State, back: Menu_Page = .Pause) {
     if g == nil do return
     g.menu.active = true
     g.menu.page = .Save
+    g.menu.return_page = back
+}
+
+menu_open_load :: proc(g: ^Game_State, back: Menu_Page = .Pause) {
+    if g == nil do return
+    g.menu.active = true
+    g.menu.page = .Load
+    g.menu.return_page = back
 }
 
 menu_close :: proc(g: ^Game_State) {
@@ -51,8 +61,12 @@ menu_toggle :: proc(g: ^Game_State) {
         menu_open_pause(g)
         return
     }
-    if g.menu.page == .Settings || g.menu.page == .Save {
-        g.menu.page = .Pause
+    if g.menu.page == .Settings || g.menu.page == .Save || g.menu.page == .Load {
+        if g.menu.return_page != .None {
+            g.menu.page = g.menu.return_page
+        } else {
+            g.menu.page = .Pause
+        }
         return
     }
     if g.menu.page == .Main {

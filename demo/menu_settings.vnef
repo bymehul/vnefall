@@ -17,7 +17,6 @@ menu_settings_title = "Settings"
 menu_btn_back      = "Back"
 menu_btn_reset     = "Reset"
 menu_show_reset    = true
-menu_overlay_settings_alpha = 0.6
 menu_panel_color_settings = 0x121624F0
 
 # Labels

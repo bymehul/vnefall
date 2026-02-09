@@ -982,6 +982,10 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
 
         // Optional one-shot blur override: bg "image.png" blur=12
         blur_override: f32 = -1
+        float_specified := false
+        float_active := ui_cfg.bg_float_default
+        float_px := ui_cfg.bg_float_px
+        float_speed := ui_cfg.bg_float_speed
         for arg in c.args {
             lower := strings.to_lower(arg)
             defer delete(lower)
@@ -989,6 +993,43 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
                 if v, ok := strconv.parse_f32(strings.trim_space(lower[5:])); ok {
                     blur_override = v
                 }
+            }
+            if lower == "float" {
+                float_specified = true
+                float_active = true
+                continue
+            }
+            if lower == "nofloat" || lower == "float=off" || lower == "float=false" {
+                float_specified = true
+                float_active = false
+                continue
+            }
+            if strings.has_prefix(lower, "float=") {
+                float_specified = true
+                val := strings.trim_space(lower[6:])
+                if val == "off" || val == "false" || val == "0" {
+                    float_active = false
+                } else if v, ok := strconv.parse_f32(val); ok {
+                    float_active = v > 0
+                    if v >= 0 do float_px = v
+                }
+                continue
+            }
+            if strings.has_prefix(lower, "float_px=") {
+                float_specified = true
+                if v, ok := strconv.parse_f32(strings.trim_space(lower[9:])); ok {
+                    float_px = v
+                    float_active = v > 0
+                }
+                continue
+            }
+            if strings.has_prefix(lower, "float_speed=") {
+                float_specified = true
+                if v, ok := strconv.parse_f32(strings.trim_space(lower[12:])); ok {
+                    float_speed = v
+                    float_active = true
+                }
+                continue
             }
         }
         if blur_override >= 0 {
@@ -1001,6 +1042,16 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
             state.bg_blur_strength = state.bg_blur_base
             state.bg_blur_override_active = false
             bg_blur_set_strength(&state.bg_blur, state.bg_blur_base)
+        }
+
+        if float_specified {
+            state.bg_float_active = float_active
+            state.bg_float_px = float_px
+            state.bg_float_speed = float_speed
+        } else {
+            state.bg_float_active = ui_cfg.bg_float_default
+            state.bg_float_px = ui_cfg.bg_float_px
+            state.bg_float_speed = ui_cfg.bg_float_speed
         }
         
         tex := scene_get_texture(c.who)
@@ -1341,12 +1392,18 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
         has_with := false
         with_kind := Transition_Kind.Fade
         with_ms: f32 = -1
+        float_specified := false
+        float_active := ui_cfg.char_float_default
+        float_px := ui_cfg.char_float_px
+        float_speed := ui_cfg.char_float_speed
 
         // Parse args: sprite/pos, optional "with", optional "z"
         i := 0
         for i < len(c.args) {
             arg := c.args[i]
-            if arg == "with" {
+            lower := strings.to_lower(arg)
+            defer delete(lower)
+            if lower == "with" {
                 has_with = true
                 if i + 1 < len(c.args) {
                     name := strings.to_lower(c.args[i+1])
@@ -1364,10 +1421,37 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
                         i += 1
                     }
                 }
-            } else if arg == "z" && i + 1 < len(c.args) {
+            } else if lower == "z" && i + 1 < len(c.args) {
                 val, ok := strconv.parse_int(c.args[i+1])
                 if ok do z = i32(val)
                 i += 1
+            } else if lower == "float" {
+                float_specified = true
+                float_active = true
+            } else if lower == "nofloat" || lower == "float=off" || lower == "float=false" {
+                float_specified = true
+                float_active = false
+            } else if strings.has_prefix(lower, "float=") {
+                float_specified = true
+                val := strings.trim_space(lower[6:])
+                if val == "off" || val == "false" || val == "0" {
+                    float_active = false
+                } else if v, ok := strconv.parse_f32(val); ok {
+                    float_active = v > 0
+                    if v >= 0 do float_px = v
+                }
+            } else if strings.has_prefix(lower, "float_px=") {
+                float_specified = true
+                if v, ok := strconv.parse_f32(strings.trim_space(lower[9:])); ok {
+                    float_px = v
+                    float_active = v > 0
+                }
+            } else if strings.has_prefix(lower, "float_speed=") {
+                float_specified = true
+                if v, ok := strconv.parse_f32(strings.trim_space(lower[12:])); ok {
+                    float_speed = v
+                    float_active = true
+                }
             } else {
                 if sprite == "" {
                     sprite = arg
@@ -1389,7 +1473,7 @@ script_execute :: proc(s: ^Script, state: ^Game_State) {
         }
 
         if c.what == "show" {
-             character_show(c.who, sprite, pos, z)
+             character_show_ex(c.who, sprite, pos, z, float_specified, float_active, float_px, float_speed)
         } else if c.what == "hide" {
              character_hide(c.who)
         }

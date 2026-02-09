@@ -11,7 +11,6 @@ import "core:strings"
 import "core:strconv"
 
 Menu_Config :: struct {
-    overlay_alpha: f32,
     panel_color:   [4]f32,
     panel_w:       f32,
     panel_h:       f32,
@@ -62,9 +61,12 @@ Menu_Config :: struct {
     menu_intro_image: string,
     menu_intro_ms: f32,
     menu_intro_skip: bool,
-    menu_overlay_start_alpha: f32,
-    menu_overlay_pause_alpha: f32,
-    menu_overlay_settings_alpha: f32,
+    menu_bg_float: bool,
+    menu_bg_float_px: f32,
+    menu_bg_float_speed: f32,
+    menu_intro_float: bool,
+    menu_intro_float_px: f32,
+    menu_intro_float_speed: f32,
     menu_panel_color_start: [4]f32,
     menu_panel_color_pause: [4]f32,
     menu_panel_color_settings: [4]f32,
@@ -82,6 +84,7 @@ Menu_Config :: struct {
     pause_title:   string,
     settings_title: string,
     save_title:    string,
+    load_title:    string,
     btn_resume:    string,
     btn_save:      string,
     btn_settings:  string,
@@ -122,7 +125,6 @@ Menu_Config :: struct {
 menu_cfg: Menu_Config
 
 menu_config_init_defaults :: proc() {
-    menu_cfg.overlay_alpha = 0.55
     menu_cfg.panel_color   = {0.08, 0.09, 0.12, 0.92}
     menu_cfg.panel_w       = 520
     menu_cfg.panel_h       = 420
@@ -155,7 +157,7 @@ menu_config_init_defaults :: proc() {
     menu_cfg.settings_value_w = 0
     menu_cfg.padding       = ui_cfg.theme_padding
     menu_cfg.gap           = ui_cfg.theme_padding * 0.6
-    menu_cfg.button_h      = ui_cfg.theme_text_line_h + ui_cfg.theme_padding * 1.1
+    menu_cfg.button_h      = ui_cfg.theme_text_line_h + ui_cfg.theme_padding * 0.6
     menu_cfg.max_button_w  = 0
     menu_cfg.align_h       = strings.clone("center")
     menu_cfg.start_align_h = strings.clone("start")
@@ -170,15 +172,18 @@ menu_config_init_defaults :: proc() {
     menu_cfg.menu_bg_start_alpha = 1.0
     menu_cfg.menu_bg_pause_alpha = 1.0
     menu_cfg.menu_bg_settings_alpha = 1.0
-    menu_cfg.menu_overlay_start_alpha = -1
-    menu_cfg.menu_overlay_pause_alpha = -1
-    menu_cfg.menu_overlay_settings_alpha = -1
     menu_cfg.menu_panel_color_start_set = false
     menu_cfg.menu_panel_color_pause_set = false
     menu_cfg.menu_panel_color_settings_set = false
     menu_cfg.menu_intro_image = strings.clone("")
     menu_cfg.menu_intro_ms = 1200
     menu_cfg.menu_intro_skip = true
+    menu_cfg.menu_bg_float = false
+    menu_cfg.menu_bg_float_px = 8
+    menu_cfg.menu_bg_float_speed = 0.2
+    menu_cfg.menu_intro_float = false
+    menu_cfg.menu_intro_float_px = 6
+    menu_cfg.menu_intro_float_speed = 0.25
 
     menu_cfg.start_title  = strings.clone("Vnefall")
     menu_cfg.btn_start    = strings.clone("Start")
@@ -190,6 +195,7 @@ menu_config_init_defaults :: proc() {
     menu_cfg.pause_title    = strings.clone("Paused")
     menu_cfg.settings_title = strings.clone("Settings")
     menu_cfg.save_title     = strings.clone("Save")
+    menu_cfg.load_title     = strings.clone("Load")
     menu_cfg.btn_resume   = strings.clone("Resume")
     menu_cfg.btn_save     = strings.clone("Save")
     menu_cfg.btn_settings = strings.clone("Settings")
@@ -258,9 +264,6 @@ menu_config_apply :: proc(path: string, warn_missing: bool) -> bool {
         }
 
         switch key {
-        case "menu_overlay_alpha":
-            v, _ := strconv.parse_f32(val)
-            menu_cfg.overlay_alpha = v
         case "menu_panel_color":
             menu_cfg.panel_color = parse_hex_color(val)
         case "menu_panel_w":
@@ -397,15 +400,6 @@ menu_config_apply :: proc(path: string, warn_missing: bool) -> bool {
         case "menu_bg_settings_alpha":
             v, _ := strconv.parse_f32(val)
             menu_cfg.menu_bg_settings_alpha = v
-        case "menu_overlay_start_alpha":
-            v, _ := strconv.parse_f32(val)
-            menu_cfg.menu_overlay_start_alpha = v
-        case "menu_overlay_pause_alpha":
-            v, _ := strconv.parse_f32(val)
-            menu_cfg.menu_overlay_pause_alpha = v
-        case "menu_overlay_settings_alpha":
-            v, _ := strconv.parse_f32(val)
-            menu_cfg.menu_overlay_settings_alpha = v
         case "menu_panel_color_start":
             menu_cfg.menu_panel_color_start = parse_hex_color(val)
             menu_cfg.menu_panel_color_start_set = true
@@ -423,6 +417,22 @@ menu_config_apply :: proc(path: string, warn_missing: bool) -> bool {
             menu_cfg.menu_intro_ms = v
         case "menu_intro_skip":
             menu_cfg.menu_intro_skip = parse_bool(val)
+        case "menu_bg_float":
+            menu_cfg.menu_bg_float = parse_bool(val)
+        case "menu_bg_float_px":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.menu_bg_float_px = v
+        case "menu_bg_float_speed":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.menu_bg_float_speed = v
+        case "menu_intro_float":
+            menu_cfg.menu_intro_float = parse_bool(val)
+        case "menu_intro_float_px":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.menu_intro_float_px = v
+        case "menu_intro_float_speed":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.menu_intro_float_speed = v
 
         case "menu_start_title":
             delete(menu_cfg.start_title)
@@ -450,6 +460,9 @@ menu_config_apply :: proc(path: string, warn_missing: bool) -> bool {
         case "menu_save_title":
             delete(menu_cfg.save_title)
             menu_cfg.save_title = strings.clone(strings.trim(val, "\""))
+        case "menu_load_title":
+            delete(menu_cfg.load_title)
+            menu_cfg.load_title = strings.clone(strings.trim(val, "\""))
         case "menu_btn_resume":
             delete(menu_cfg.btn_resume)
             menu_cfg.btn_resume = strings.clone(strings.trim(val, "\""))
@@ -602,6 +615,7 @@ menu_config_cleanup :: proc() {
     delete(menu_cfg.pause_title)
     delete(menu_cfg.settings_title)
     delete(menu_cfg.save_title)
+    delete(menu_cfg.load_title)
     delete(menu_cfg.btn_resume)
     delete(menu_cfg.btn_save)
     delete(menu_cfg.btn_settings)

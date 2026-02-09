@@ -60,7 +60,13 @@ UI_Config :: struct {
     char_slide_ms: f32,
     char_shake_ms: f32,
     char_shake_px: f32,
+    char_float_default: bool,
+    char_float_px: f32,
+    char_float_speed: f32,
     bg_shake_px:   f32,
+    bg_float_default: bool,
+    bg_float_px: f32,
+    bg_float_speed: f32,
 
     // Optional loading screen image (relative to path_images)
     loading_image: string,
@@ -112,7 +118,13 @@ ui_config_init_defaults :: proc() {
     ui_cfg.char_slide_ms = 250
     ui_cfg.char_shake_ms = 200
     ui_cfg.char_shake_px = 8
+    ui_cfg.char_float_default = false
+    ui_cfg.char_float_px = 6
+    ui_cfg.char_float_speed = 0.25
     ui_cfg.bg_shake_px = 10
+    ui_cfg.bg_float_default = false
+    ui_cfg.bg_float_px = 8
+    ui_cfg.bg_float_speed = 0.2
     ui_cfg.loading_image = strings.clone("")
 }
 
@@ -250,9 +262,25 @@ ui_config_load :: proc(path: string) -> bool {
         case "char_shake_px":
             v, _ := strconv.parse_f32(val)
             ui_cfg.char_shake_px = v
+        case "char_float_default":
+            ui_cfg.char_float_default = parse_bool(val)
+        case "char_float_px":
+            v, _ := strconv.parse_f32(val)
+            ui_cfg.char_float_px = v
+        case "char_float_speed":
+            v, _ := strconv.parse_f32(val)
+            ui_cfg.char_float_speed = v
         case "bg_shake_px":
             v, _ := strconv.parse_f32(val)
             ui_cfg.bg_shake_px = v
+        case "bg_float_default":
+            ui_cfg.bg_float_default = parse_bool(val)
+        case "bg_float_px":
+            v, _ := strconv.parse_f32(val)
+            ui_cfg.bg_float_px = v
+        case "bg_float_speed":
+            v, _ := strconv.parse_f32(val)
+            ui_cfg.bg_float_speed = v
 
         case "loading_image":
             delete(ui_cfg.loading_image)

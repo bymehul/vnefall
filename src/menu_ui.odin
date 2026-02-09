@@ -3,6 +3,7 @@ package vnefall
 import "core:strings"
 import "core:fmt"
 import "core:os"
+import "core:math"
 import vneui "vneui:src"
 
 ui_layer_draw_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Game_State) {
@@ -10,6 +11,10 @@ ui_layer_draw_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Ga
 
     if g.menu_intro_active {
         rect := vneui.Rect{0, 0, cfg.design_width, cfg.design_height}
+        if menu_cfg.menu_intro_float && menu_cfg.menu_intro_float_px > 0 {
+            dx, dy, pad := menu_float_offset(ctx.time, menu_cfg.menu_intro_float_px, menu_cfg.menu_intro_float_speed)
+            rect = vneui.Rect{-pad + dx, -pad + dy, cfg.design_width + pad*2, cfg.design_height + pad*2}
+        }
         if g.menu_intro_tex != 0 {
             vneui.ui_push_image(ctx, rect, int(g.menu_intro_tex), vneui.Vec2{0, 0}, vneui.Vec2{1, 1}, vneui.ui_color(1, 1, 1, 1))
         } else {
@@ -17,15 +22,6 @@ ui_layer_draw_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Ga
         }
         return
     }
-
-    bg_tex := menu_bg_tex_for_page(g)
-    if bg_tex != 0 {
-        tint := vneui.ui_color(1, 1, 1, menu_bg_alpha_for_page(g))
-        vneui.ui_push_image(ctx, vneui.Rect{0, 0, cfg.design_width, cfg.design_height}, int(bg_tex), vneui.Vec2{0, 0}, vneui.Vec2{1, 1}, tint)
-    }
-
-    overlay := vneui.Rect{0, 0, cfg.design_width, cfg.design_height}
-    vneui.ui_panel_color(ctx, overlay, vneui.ui_color(0, 0, 0, menu_overlay_alpha_for_page(g)))
 
     if g.menu.page == .Main {
         ui_layer_draw_start_menu(ctx, theme, g)
@@ -37,6 +33,10 @@ ui_layer_draw_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Ga
     }
     if g.menu.page == .Save {
         ui_layer_draw_save_menu(ctx, theme, g)
+        return
+    }
+    if g.menu.page == .Load {
+        ui_layer_draw_load_menu(ctx, theme, g)
         return
     }
     ui_layer_draw_pause_menu(ctx, theme, g)
@@ -74,11 +74,7 @@ ui_layer_draw_start_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, 
         menu_start_fresh(g)
         menu_close(g)
     case load_id:
-        if menu_quick_load(g, menu_cfg.load_slot) {
-            menu_close(g)
-        } else {
-            fmt.eprintln("[menu] Load failed:", menu_cfg.load_slot)
-        }
+        menu_open_load(g, .Main)
     case quit_id:
         g.running = false
     }
@@ -100,12 +96,16 @@ ui_layer_draw_pause_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, 
 
     resume_id := vneui.ui_id_from_string("menu_resume")
     save_id := vneui.ui_id_from_string("menu_save")
+    load_id := vneui.ui_id_from_string("menu_load")
     settings_id := vneui.ui_id_from_string("menu_settings")
     quit_id := vneui.ui_id_from_string("menu_quit")
 
     append(&items, vneui.UI_Menu_Item{id = resume_id, label = menu_cfg.btn_resume})
     if menu_cfg.show_save {
         append(&items, vneui.UI_Menu_Item{id = save_id, label = menu_cfg.btn_save})
+    }
+    if menu_cfg.show_load {
+        append(&items, vneui.UI_Menu_Item{id = load_id, label = menu_cfg.btn_load})
     }
     append(&items, vneui.UI_Menu_Item{id = settings_id, label = menu_cfg.btn_settings})
     if menu_cfg.show_quit {
@@ -117,7 +117,9 @@ ui_layer_draw_pause_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, 
     case resume_id:
         menu_close(g)
     case save_id:
-        menu_open_save(g)
+        menu_open_save(g, .Pause)
+    case load_id:
+        menu_open_load(g, .Pause)
     case settings_id:
         menu_open_settings(g)
     case quit_id:
@@ -144,7 +146,7 @@ ui_layer_draw_save_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g
     layout.gap = menu_cfg.gap
     if layout.slot_h <= 0 do layout.slot_h = theme.text_line_height * 2.4 + theme.padding * 1.2
 
-    slots := menu_build_save_slots(g.menu.save_page)
+    slots := menu_build_save_slots(g.menu.save_page, .Save)
     defer menu_free_save_slots(&slots)
 
     cfg_save := vneui.UI_Save_List_Config{
@@ -175,7 +177,74 @@ ui_layer_draw_save_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g
     }
     vneui.ui_label_layout(ctx, page_label, footer_rect.w - btn_w*3 - layout.gap*2, layout.button_h)
     if vneui.ui_button_layout(ctx, menu_cfg.btn_back, btn_w, layout.button_h) {
-        menu_open_pause(g)
+        if g.menu.return_page != .None {
+            g.menu.page = g.menu.return_page
+        } else {
+            menu_open_pause(g)
+        }
+    }
+    if vneui.ui_button_layout(ctx, next_label, btn_w, layout.button_h) {
+        if g.menu.save_page < SAVE_PAGE_COUNT-1 do g.menu.save_page += 1
+    }
+    vneui.ui_layout_end(ctx)
+}
+
+ui_layer_draw_load_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g: ^Game_State) {
+    load_w := menu_dim(menu_cfg.save_w, menu_cfg.save_w_pct, cfg.design_width)
+    load_h := menu_dim(menu_cfg.save_h, menu_cfg.save_h_pct, cfg.design_height)
+    rect := menu_save_rect(load_w, load_h)
+    if menu_cfg.save_panel {
+        style := vneui.ui_style_from_theme(theme)
+        style.panel_color = ui_color_from_rgba(menu_panel_color_for_page(g))
+        vneui.ui_panel_color_style(ctx, rect, style.panel_color, style)
+    }
+
+    layout := vneui.ui_save_list_layout_default(ctx)
+    layout.padding = menu_cfg.padding
+    layout.gap = menu_cfg.gap
+    if layout.slot_h <= 0 do layout.slot_h = theme.text_line_height * 2.4 + theme.padding * 1.2
+
+    slots := menu_build_save_slots(g.menu.save_page, .Load)
+    defer menu_free_save_slots(&slots)
+
+    title := menu_cfg.load_title
+    if title == "" do title = "Load"
+    cfg_save := vneui.UI_Save_List_Config{
+        title = title,
+        mode = .Load,
+        show_back = false,
+        back_label = menu_cfg.btn_back,
+    }
+    res := vneui.ui_save_list_menu(ctx, rect, slots[:], cfg_save, layout, &g.save_list_state)
+    if res.action == .Select && res.index >= 0 {
+        slot_name := menu_save_slot_name(g.menu.save_page, res.index)
+        defer delete(slot_name)
+        if load_game_from_slot(g, slot_name) {
+            menu_close(g)
+        } else {
+            fmt.eprintln("[menu] Load failed:", slot_name)
+        }
+    }
+
+    footer_h := layout.button_h
+    footer_rect := vneui.Rect{rect.x, rect.y + rect.h - footer_h - layout.padding, rect.w - layout.padding * 2, footer_h}
+    vneui.ui_layout_begin(ctx, footer_rect, .Row, 0, layout.gap)
+    prev_label := "< Prev"
+    next_label := "Next >"
+    page_label := fmt.aprintf("Page %d / %d", g.menu.save_page+1, SAVE_PAGE_COUNT)
+    defer delete(page_label)
+    btn_w := (footer_rect.w - layout.gap*3) * 0.2
+    if btn_w < 80 do btn_w = 80
+    if vneui.ui_button_layout(ctx, prev_label, btn_w, layout.button_h) {
+        if g.menu.save_page > 0 do g.menu.save_page -= 1
+    }
+    vneui.ui_label_layout(ctx, page_label, footer_rect.w - btn_w*3 - layout.gap*2, layout.button_h)
+    if vneui.ui_button_layout(ctx, menu_cfg.btn_back, btn_w, layout.button_h) {
+        if g.menu.return_page != .None {
+            g.menu.page = g.menu.return_page
+        } else {
+            menu_open_pause(g)
+        }
     }
     if vneui.ui_button_layout(ctx, next_label, btn_w, layout.button_h) {
         if g.menu.save_page < SAVE_PAGE_COUNT-1 do g.menu.save_page += 1
@@ -338,8 +407,20 @@ menu_button_list :: proc(ctx: ^vneui.UI_Context, rect: vneui.Rect, title: string
 
     vneui.ui_layout_begin(ctx, rect, .Column, lay.padding, lay.gap)
     if title != "" {
-        header_h := ctx.theme.text_line_height + ctx.theme.padding * 0.5
-        vneui.ui_label_layout(ctx, title, 0, header_h)
+        header_h := ctx.theme.text_line_height + ctx.theme.padding * 0.6
+        header_rect := vneui.ui_layout_next(ctx, 0, header_h)
+        header_style := vneui.ui_style_from_theme(ctx.theme)
+        header_style.corner_radius = 0
+        header_style.border_width = 0
+        header_fill := vneui.ui_color_scale(ctx.theme.panel_color, 1.06)
+        vneui.ui_panel_color_style(ctx, header_rect, header_fill, header_style)
+
+        title_align := lay.align_h
+        title_rect := header_rect
+        title_rect.x += ctx.theme.padding * 0.6
+        title_rect.w -= ctx.theme.padding * 1.2
+        vneui.ui_push_text_aligned(ctx, title_rect, title, ctx.theme.font_id, ctx.theme.font_size * 1.08, ctx.theme.text_color, title_align, .Center)
+
         line_rect := vneui.ui_layout_next(ctx, 0, 2)
         vneui.ui_panel_color(ctx, line_rect, ctx.theme.accent_color)
         _ = vneui.ui_layout_next(ctx, 0, ctx.theme.padding * 0.4)
@@ -412,6 +493,10 @@ menu_button_id :: proc(ctx: ^vneui.UI_Context, id: u64, rect: vneui.Rect, label:
         clicked = true
     }
 
+    style := vneui.ui_style_from_theme(ctx.theme)
+    style.corner_radius = ctx.theme.corner_radius
+    style.border_width = max(style.border_width, 1)
+
     color := ctx.theme.panel_color
     if ctx.hot_id == id {
         color = vneui.ui_color_scale(color, 1.08)
@@ -423,7 +508,7 @@ menu_button_id :: proc(ctx: ^vneui.UI_Context, id: u64, rect: vneui.Rect, label:
         color = vneui.ui_color_scale(color, 1.05)
     }
 
-    vneui.ui_panel_color(ctx, rect, color)
+    vneui.ui_panel_color_style(ctx, rect, color, style)
     if hovered || focused {
         bar := vneui.Rect{rect.x, rect.y, 4, rect.h}
         vneui.ui_panel_color(ctx, bar, ctx.theme.accent_color)
@@ -432,7 +517,11 @@ menu_button_id :: proc(ctx: ^vneui.UI_Context, id: u64, rect: vneui.Rect, label:
     text_rect := rect
     text_rect.x += ctx.theme.padding * 0.8
     text_rect.w -= ctx.theme.padding * 0.8
-    vneui.ui_push_text_aligned(ctx, text_rect, label, ctx.theme.font_id, ctx.theme.font_size, ctx.theme.text_color, .Start, .Center)
+    text_color := ctx.theme.text_color
+    if hovered || focused {
+        text_color = ctx.theme.accent_color
+    }
+    vneui.ui_push_text_aligned(ctx, text_rect, label, ctx.theme.font_id, ctx.theme.font_size, text_color, .Start, .Center)
     return clicked
 }
 
@@ -586,7 +675,7 @@ menu_save_slot_name :: proc(page, index: int) -> string {
     return fmt.aprintf("save_p%02d_s%02d", page+1, index+1)
 }
 
-menu_build_save_slots :: proc(page: int) -> [dynamic]vneui.UI_Save_Slot {
+menu_build_save_slots :: proc(page: int, mode: vneui.UI_Save_List_Mode) -> [dynamic]vneui.UI_Save_Slot {
     slots := make([dynamic]vneui.UI_Save_Slot, 0, SAVE_SLOTS_PER_PAGE)
     p := page
     if p < 0 do p = 0
@@ -607,13 +696,18 @@ menu_build_save_slots :: proc(page: int) -> [dynamic]vneui.UI_Save_Slot {
             subtitle = strings.clone("")
         }
         
+        disabled := false
+        if mode == .Load && !exists {
+            disabled = true
+        }
+
         slot := vneui.UI_Save_Slot{
             id = vneui.ui_id_from_string(slot_name),
             title = title,
             subtitle = subtitle,
             timestamp = strings.clone(""),
             thumbnail_id = 0,
-            disabled = false,
+            disabled = disabled,
         }
         append(&slots, slot)
         delete(slot_name)
@@ -646,7 +740,7 @@ menu_bg_tex_for_page :: proc(g: ^Game_State) -> u32 {
         if g.menu_bg_start_tex != 0 do return g.menu_bg_start_tex
     case .Settings:
         if g.menu_bg_settings_tex != 0 do return g.menu_bg_settings_tex
-    case .Pause, .Save:
+    case .Pause, .Save, .Load:
         if g.menu_bg_pause_tex != 0 do return g.menu_bg_pause_tex
     case .None:
         // fallthrough to default background
@@ -661,25 +755,11 @@ menu_bg_alpha_for_page :: proc(g: ^Game_State) -> f32 {
         if menu_cfg.menu_bg_start_alpha > 0 do return menu_cfg.menu_bg_start_alpha
     case .Settings:
         if menu_cfg.menu_bg_settings_alpha > 0 do return menu_cfg.menu_bg_settings_alpha
-    case .Pause, .Save:
+    case .Pause, .Save, .Load:
         if menu_cfg.menu_bg_pause_alpha > 0 do return menu_cfg.menu_bg_pause_alpha
     case .None:
     }
     return menu_cfg.menu_bg_alpha
-}
-
-menu_overlay_alpha_for_page :: proc(g: ^Game_State) -> f32 {
-    if g == nil do return menu_cfg.overlay_alpha
-    switch g.menu.page {
-    case .Main:
-        if menu_cfg.menu_overlay_start_alpha >= 0 do return menu_cfg.menu_overlay_start_alpha
-    case .Settings:
-        if menu_cfg.menu_overlay_settings_alpha >= 0 do return menu_cfg.menu_overlay_settings_alpha
-    case .Pause, .Save:
-        if menu_cfg.menu_overlay_pause_alpha >= 0 do return menu_cfg.menu_overlay_pause_alpha
-    case .None:
-    }
-    return menu_cfg.overlay_alpha
 }
 
 menu_panel_color_for_page :: proc(g: ^Game_State) -> [4]f32 {
@@ -689,7 +769,7 @@ menu_panel_color_for_page :: proc(g: ^Game_State) -> [4]f32 {
         if menu_cfg.menu_panel_color_start_set do return menu_cfg.menu_panel_color_start
     case .Settings:
         if menu_cfg.menu_panel_color_settings_set do return menu_cfg.menu_panel_color_settings
-    case .Pause, .Save:
+    case .Pause, .Save, .Load:
         if menu_cfg.menu_panel_color_pause_set do return menu_cfg.menu_panel_color_pause
     case .None:
     }
@@ -704,6 +784,18 @@ menu_align_from_cfg :: proc(value: string) -> vneui.UI_Align {
     case "end": return .End
     }
     return .Center
+}
+
+menu_float_offset :: proc(t, amp, speed: f32) -> (f32, f32, f32) {
+    speed_val := speed
+    amp_val := amp
+    if speed_val <= 0 do speed_val = 0.2
+    if amp_val < 0 do amp_val = 0
+    phase := t * speed_val * 6.2831853
+    dx := math.sin(phase) * amp_val
+    dy := math.cos(phase * 0.9) * amp_val
+    pad := amp_val
+    return dx, dy, pad
 }
 
 settings_changed :: proc(a, b: Settings) -> bool {
