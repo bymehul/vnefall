@@ -6,15 +6,18 @@ menu_btn_start   = "Start"
 menu_btn_load    = "Load"
 menu_show_load   = true
 menu_load_slot   = "auto_start"
-menu_panel_color_start = 0x151822F0
+menu_panel_color_start = 0x0E0F16AA
 
 menu_start_w      = 520
-menu_start_h      = 420
+menu_start_h      = 440
 menu_start_anchor = "left"  # left | center | right
-menu_start_x      = 80
-menu_start_y      = 140
-menu_start_panel  = false
+menu_start_x      = 120
+menu_start_y      = 150
+menu_start_panel  = true
 menu_start_align_h = "start"
+menu_btn_style_start = "text"  # panel | text
+menu_title_scale_start = 2.1
+menu_item_scale_start = 1.18
 
 # Percent-based sizing/offsets (0 = off)
 menu_start_w_pct  = 0

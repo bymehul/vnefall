@@ -4,8 +4,8 @@ menu_save_title = "Save"
 menu_load_title = "Load"
 menu_btn_back   = "Back"
 
-menu_save_w      = 760
-menu_save_h      = 560
+menu_save_w      = 820
+menu_save_h      = 600
 menu_save_w_pct  = 0
 menu_save_h_pct  = 0
 menu_save_anchor = "center" # left | center | right

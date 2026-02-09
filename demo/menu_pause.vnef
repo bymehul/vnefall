@@ -12,11 +12,14 @@ menu_btn_settings = "Settings"
 menu_btn_quit     = "Quit"
 menu_show_quit    = true
 menu_show_save    = true
-menu_panel_color_pause = 0x0E0F16F0
+menu_panel_color_pause = 0x0E0F1626
 
 menu_pause_anchor = "center" # left | center | right
 menu_pause_x      = 0
 menu_pause_y      = 0
 menu_pause_x_pct  = 0
 menu_pause_y_pct  = 0
-menu_pause_panel  = true
+menu_pause_panel  = false
+menu_btn_style_pause = "text" # panel | text
+menu_title_scale_pause = 1.2
+menu_item_scale_pause = 1.08

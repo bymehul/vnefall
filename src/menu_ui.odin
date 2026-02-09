@@ -51,6 +51,7 @@ ui_layer_draw_start_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, 
         style.panel_color = ui_color_from_rgba(menu_panel_color_for_page(g))
         vneui.ui_panel_color_style(ctx, rect, style.panel_color, style)
     }
+    menu_draw_blocks(ctx, g)
 
     layout := menu_layout_from_cfg_start(ctx)
     items := make([dynamic]vneui.UI_Menu_Item, 0, 4)
@@ -68,7 +69,9 @@ ui_layer_draw_start_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, 
         append(&items, vneui.UI_Menu_Item{id = quit_id, label = menu_cfg.btn_quit})
     }
 
-    res := menu_button_list(ctx, rect, menu_cfg.start_title, items[:], layout)
+    title_scale := menu_scale_value(menu_cfg.menu_title_scale, menu_cfg.menu_title_scale_start)
+    item_scale := menu_scale_value(menu_cfg.menu_item_scale, menu_cfg.menu_item_scale_start)
+    res := menu_button_list(ctx, rect, menu_cfg.start_title, items[:], layout, menu_button_style_for_start(), title_scale, item_scale)
     switch res.id {
     case start_id:
         menu_start_fresh(g)
@@ -89,6 +92,7 @@ ui_layer_draw_pause_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, 
         style.panel_color = ui_color_from_rgba(menu_panel_color_for_page(g))
         vneui.ui_panel_color_style(ctx, rect, style.panel_color, style)
     }
+    menu_draw_blocks(ctx, g)
 
     layout := menu_layout_from_cfg(ctx)
     items := make([dynamic]vneui.UI_Menu_Item, 0, 4)
@@ -112,7 +116,9 @@ ui_layer_draw_pause_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, 
         append(&items, vneui.UI_Menu_Item{id = quit_id, label = menu_cfg.btn_quit})
     }
 
-    res := menu_button_list(ctx, rect, menu_cfg.pause_title, items[:], layout)
+    title_scale := menu_scale_value(menu_cfg.menu_title_scale, menu_cfg.menu_title_scale_pause)
+    item_scale := menu_scale_value(menu_cfg.menu_item_scale, menu_cfg.menu_item_scale_pause)
+    res := menu_button_list(ctx, rect, menu_cfg.pause_title, items[:], layout, menu_button_style_for_pause(), title_scale, item_scale)
     switch res.id {
     case resume_id:
         menu_close(g)
@@ -139,6 +145,7 @@ ui_layer_draw_save_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g
         style.panel_color = ui_color_from_rgba(menu_panel_color_for_page(g))
         vneui.ui_panel_color_style(ctx, rect, style.panel_color, style)
     }
+    menu_draw_blocks(ctx, g)
 
     // Page controls
     layout := vneui.ui_save_list_layout_default(ctx)
@@ -198,6 +205,7 @@ ui_layer_draw_load_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Theme, g
         style.panel_color = ui_color_from_rgba(menu_panel_color_for_page(g))
         vneui.ui_panel_color_style(ctx, rect, style.panel_color, style)
     }
+    menu_draw_blocks(ctx, g)
 
     layout := vneui.ui_save_list_layout_default(ctx)
     layout.padding = menu_cfg.padding
@@ -259,6 +267,7 @@ ui_layer_draw_settings_menu :: proc(ctx: ^vneui.UI_Context, theme: vneui.UI_Them
     style := vneui.ui_style_from_theme(theme)
     style.panel_color = ui_color_from_rgba(menu_panel_color_for_page(g))
     vneui.ui_panel_color_style(ctx, rect, style.panel_color, style)
+    menu_draw_blocks(ctx, g)
 
     prev := g_settings
 
@@ -398,7 +407,7 @@ ui_preferences_menu_scroll :: proc(ctx: ^vneui.UI_Context, rect: vneui.Rect, men
     return action
 }
 
-menu_button_list :: proc(ctx: ^vneui.UI_Context, rect: vneui.Rect, title: string, items: []vneui.UI_Menu_Item, layout: vneui.UI_Menu_Layout) -> vneui.UI_Menu_Result {
+menu_button_list :: proc(ctx: ^vneui.UI_Context, rect: vneui.Rect, title: string, items: []vneui.UI_Menu_Item, layout: vneui.UI_Menu_Layout, style: Menu_Button_Style, title_scale: f32, item_scale: f32) -> vneui.UI_Menu_Result {
     result := vneui.UI_Menu_Result{id = 0, index = -1}
     lay := layout
     if lay.padding <= 0 do lay.padding = ctx.theme.padding
@@ -406,24 +415,36 @@ menu_button_list :: proc(ctx: ^vneui.UI_Context, rect: vneui.Rect, title: string
     if lay.button_h <= 0 do lay.button_h = ctx.theme.text_line_height + ctx.theme.padding * 1.2
 
     vneui.ui_layout_begin(ctx, rect, .Column, lay.padding, lay.gap)
+    title_size := ctx.theme.font_size * title_scale
+    item_size := ctx.theme.font_size * item_scale
+    min_h := item_size + ctx.theme.padding * 1.2
+    if lay.button_h < min_h do lay.button_h = min_h
+
     if title != "" {
-        header_h := ctx.theme.text_line_height + ctx.theme.padding * 0.6
+        header_h := title_size + ctx.theme.padding * 0.6
         header_rect := vneui.ui_layout_next(ctx, 0, header_h)
-        header_style := vneui.ui_style_from_theme(ctx.theme)
-        header_style.corner_radius = 0
-        header_style.border_width = 0
-        header_fill := vneui.ui_color_scale(ctx.theme.panel_color, 1.06)
-        vneui.ui_panel_color_style(ctx, header_rect, header_fill, header_style)
+
+        if style == .Panel {
+            header_style := vneui.ui_style_from_theme(ctx.theme)
+            header_style.corner_radius = 0
+            header_style.border_width = 0
+            header_fill := vneui.ui_color_scale(ctx.theme.panel_color, 1.06)
+            vneui.ui_panel_color_style(ctx, header_rect, header_fill, header_style)
+        }
 
         title_align := lay.align_h
         title_rect := header_rect
         title_rect.x += ctx.theme.padding * 0.6
         title_rect.w -= ctx.theme.padding * 1.2
-        vneui.ui_push_text_aligned(ctx, title_rect, title, ctx.theme.font_id, ctx.theme.font_size * 1.08, ctx.theme.text_color, title_align, .Center)
+        vneui.ui_push_text_aligned(ctx, title_rect, title, ctx.theme.font_id, title_size, ctx.theme.text_color, title_align, .Center)
 
-        line_rect := vneui.ui_layout_next(ctx, 0, 2)
-        vneui.ui_panel_color(ctx, line_rect, ctx.theme.accent_color)
-        _ = vneui.ui_layout_next(ctx, 0, ctx.theme.padding * 0.4)
+        if style == .Panel {
+            line_rect := vneui.ui_layout_next(ctx, 0, 2)
+            vneui.ui_panel_color(ctx, line_rect, ctx.theme.accent_color)
+            _ = vneui.ui_layout_next(ctx, 0, ctx.theme.padding * 0.4)
+        } else {
+            _ = vneui.ui_layout_next(ctx, 0, ctx.theme.padding * 0.2)
+        }
     }
 
     for i := 0; i < len(items); i += 1 {
@@ -457,7 +478,7 @@ menu_button_list :: proc(ctx: ^vneui.UI_Context, rect: vneui.Rect, title: string
             continue
         }
 
-        clicked := menu_button_id(ctx, id, btn_rect, item.label)
+        clicked := menu_button_id(ctx, id, btn_rect, item.label, style, item_size, lay.align_h)
         if clicked && result.index == -1 {
             result.id = id
             result.index = i
@@ -467,7 +488,7 @@ menu_button_list :: proc(ctx: ^vneui.UI_Context, rect: vneui.Rect, title: string
     return result
 }
 
-menu_button_id :: proc(ctx: ^vneui.UI_Context, id: u64, rect: vneui.Rect, label: string) -> bool {
+menu_button_id :: proc(ctx: ^vneui.UI_Context, id: u64, rect: vneui.Rect, label: string, style: Menu_Button_Style, font_size: f32, align: vneui.UI_Align) -> bool {
     focused := vneui.ui_focus_register(ctx, id)
     allowed := vneui.ui_input_allowed(ctx, rect)
     hovered := allowed && vneui.ui_rect_contains(rect, ctx.input.mouse_pos)
@@ -493,9 +514,26 @@ menu_button_id :: proc(ctx: ^vneui.UI_Context, id: u64, rect: vneui.Rect, label:
         clicked = true
     }
 
-    style := vneui.ui_style_from_theme(ctx.theme)
-    style.corner_radius = ctx.theme.corner_radius
-    style.border_width = max(style.border_width, 1)
+    text_rect := rect
+    text_color := ctx.theme.text_color
+    if hovered || focused {
+        text_color = ctx.theme.accent_color
+    }
+
+    if style == .Text {
+        text_rect.x += ctx.theme.padding * 0.4
+        text_rect.w -= ctx.theme.padding * 0.4
+        vneui.ui_push_text_aligned(ctx, text_rect, label, ctx.theme.font_id, font_size, text_color, align, .Center)
+        if hovered || focused {
+            line := vneui.Rect{rect.x, rect.y + rect.h - 2, rect.w, 2}
+            vneui.ui_panel_color(ctx, line, ctx.theme.accent_color)
+        }
+        return clicked
+    }
+
+    style_cfg := vneui.ui_style_from_theme(ctx.theme)
+    style_cfg.corner_radius = ctx.theme.corner_radius
+    style_cfg.border_width = max(style_cfg.border_width, 1)
 
     color := ctx.theme.panel_color
     if ctx.hot_id == id {
@@ -508,21 +546,99 @@ menu_button_id :: proc(ctx: ^vneui.UI_Context, id: u64, rect: vneui.Rect, label:
         color = vneui.ui_color_scale(color, 1.05)
     }
 
-    vneui.ui_panel_color_style(ctx, rect, color, style)
+    vneui.ui_panel_color_style(ctx, rect, color, style_cfg)
     if hovered || focused {
         bar := vneui.Rect{rect.x, rect.y, 4, rect.h}
         vneui.ui_panel_color(ctx, bar, ctx.theme.accent_color)
     }
 
-    text_rect := rect
     text_rect.x += ctx.theme.padding * 0.8
     text_rect.w -= ctx.theme.padding * 0.8
-    text_color := ctx.theme.text_color
-    if hovered || focused {
-        text_color = ctx.theme.accent_color
-    }
-    vneui.ui_push_text_aligned(ctx, text_rect, label, ctx.theme.font_id, ctx.theme.font_size, text_color, .Start, .Center)
+    vneui.ui_push_text_aligned(ctx, text_rect, label, ctx.theme.font_id, font_size, text_color, .Start, .Center)
     return clicked
+}
+
+menu_block_align :: proc(s: string) -> vneui.UI_Align {
+    lower := strings.to_lower(strings.trim_space(s))
+    switch lower {
+    case "center":
+        return .Center
+    case "right", "end":
+        return .End
+    }
+    return .Start
+}
+
+menu_block_matches_page :: proc(block: Menu_Block, page: Menu_Page) -> bool {
+    p := strings.to_lower(strings.trim_space(block.page))
+    if p == "" || p == "all" do return true
+    switch page {
+    case .None:
+        return false
+    case .Main:
+        return p == "main" || p == "start"
+    case .Pause:
+        return p == "pause"
+    case .Settings:
+        return p == "settings"
+    case .Save:
+        return p == "save"
+    case .Load:
+        return p == "load"
+    }
+    return false
+}
+
+menu_draw_blocks :: proc(ctx: ^vneui.UI_Context, g: ^Game_State) {
+    if ctx == nil || g == nil do return
+    if len(menu_cfg.menu_blocks) == 0 do return
+
+    for block in menu_cfg.menu_blocks {
+        if block.text == "" do continue
+        if !menu_block_matches_page(block, g.menu.page) do continue
+
+        font_size := ctx.theme.font_size
+        if block.size > 0 do font_size = ctx.theme.font_size * block.size
+
+        text_w := vneui.ui_measure_text(ctx, block.text, ctx.theme.font_id, font_size)
+        text_h := ctx.theme.text_line_height * (font_size / ctx.theme.font_size)
+
+        x := block.x
+        y := block.y
+        if block.use_pct {
+            if block.x_pct >= 0 do x = block.x_pct * cfg.design_width
+            if block.y_pct >= 0 do y = block.y_pct * cfg.design_height
+        }
+
+        rect := vneui.Rect{x, y, text_w, text_h}
+        align_h := menu_block_align(block.anchor)
+        align_v := menu_block_align(block.valign)
+
+    switch align_h {
+    case .Start:
+        // no-op
+    case .Center:
+        rect.x -= text_w * 0.5
+    case .End:
+        rect.x -= text_w
+    }
+    switch align_v {
+    case .Start:
+        // no-op
+    case .Center:
+        rect.y -= text_h * 0.5
+    case .End:
+        rect.y -= text_h
+    }
+
+        if block.shadow {
+            shadow_rect := rect
+            shadow_rect.x += block.shadow_px
+            shadow_rect.y += block.shadow_px
+            vneui.ui_push_text_aligned(ctx, shadow_rect, block.text, ctx.theme.font_id, font_size, ui_color_from_rgba(block.shadow_color), .Start, .Start)
+        }
+        vneui.ui_push_text_aligned(ctx, rect, block.text, ctx.theme.font_id, font_size, ui_color_from_rgba(block.color), .Start, .Start)
+    }
 }
 
 menu_start_fresh :: proc(g: ^Game_State) {
@@ -784,6 +900,42 @@ menu_align_from_cfg :: proc(value: string) -> vneui.UI_Align {
     case "end": return .End
     }
     return .Center
+}
+
+Menu_Button_Style :: enum {
+    Panel,
+    Text,
+}
+
+menu_button_style_from_string :: proc(value: string) -> Menu_Button_Style {
+    lower := strings.to_lower(value)
+    defer delete(lower)
+    switch lower {
+    case "text":
+        return .Text
+    }
+    return .Panel
+}
+
+menu_button_style_for_start :: proc() -> Menu_Button_Style {
+    if menu_cfg.menu_btn_style_start != "" {
+        return menu_button_style_from_string(menu_cfg.menu_btn_style_start)
+    }
+    return menu_button_style_from_string(menu_cfg.menu_btn_style)
+}
+
+menu_button_style_for_pause :: proc() -> Menu_Button_Style {
+    if menu_cfg.menu_btn_style_pause != "" {
+        return menu_button_style_from_string(menu_cfg.menu_btn_style_pause)
+    }
+    return menu_button_style_from_string(menu_cfg.menu_btn_style)
+}
+
+menu_scale_value :: proc(base, override: f32) -> f32 {
+    v := base
+    if v <= 0 do v = 1.0
+    if override > 0 do v = override
+    return v
 }
 
 menu_float_offset :: proc(t, amp, speed: f32) -> (f32, f32, f32) {

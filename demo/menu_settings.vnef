@@ -1,7 +1,7 @@
 # Settings menu
 
-menu_settings_w    = 720
-menu_settings_h    = 520
+menu_settings_w    = 760
+menu_settings_h    = 540
 menu_settings_w_pct = 0
 menu_settings_h_pct = 0
 
@@ -10,14 +10,14 @@ menu_settings_x      = 0
 menu_settings_y      = 0
 menu_settings_x_pct  = 0
 menu_settings_y_pct  = 0
-menu_settings_label_w = 200
-menu_settings_value_w = 60
+menu_settings_label_w = 220
+menu_settings_value_w = 70
 
 menu_settings_title = "Settings"
 menu_btn_back      = "Back"
 menu_btn_reset     = "Reset"
 menu_show_reset    = true
-menu_panel_color_settings = 0x121624F0
+menu_panel_color_settings = 0x10131EB3
 
 # Labels
 label_master      = "Master Volume"

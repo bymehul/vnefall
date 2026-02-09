@@ -10,6 +10,23 @@ import "core:os"
 import "core:strings"
 import "core:strconv"
 
+Menu_Block :: struct {
+    text: string,
+    x: f32,
+    y: f32,
+    x_pct: f32,
+    y_pct: f32,
+    use_pct: bool,
+    anchor: string,
+    valign: string,
+    size: f32,
+    color: [4]f32,
+    page: string,
+    shadow: bool,
+    shadow_color: [4]f32,
+    shadow_px: f32,
+}
+
 Menu_Config :: struct {
     panel_color:   [4]f32,
     panel_w:       f32,
@@ -73,6 +90,15 @@ Menu_Config :: struct {
     menu_panel_color_start_set: bool,
     menu_panel_color_pause_set: bool,
     menu_panel_color_settings_set: bool,
+    menu_btn_style: string,
+    menu_btn_style_start: string,
+    menu_btn_style_pause: string,
+    menu_title_scale: f32,
+    menu_item_scale: f32,
+    menu_title_scale_start: f32,
+    menu_item_scale_start: f32,
+    menu_title_scale_pause: f32,
+    menu_item_scale_pause: f32,
 
     start_title:   string,
     btn_start:     string,
@@ -120,9 +146,28 @@ Menu_Config :: struct {
 
     text_speed_min: f32,
     text_speed_max: f32,
+
+    menu_blocks: [dynamic]Menu_Block,
 }
 
 menu_cfg: Menu_Config
+
+menu_block_cleanup :: proc(block: ^Menu_Block) {
+    if block == nil do return
+    if len(block.text) > 0 do delete(block.text)
+    if len(block.anchor) > 0 do delete(block.anchor)
+    if len(block.valign) > 0 do delete(block.valign)
+    if len(block.page) > 0 do delete(block.page)
+}
+
+menu_blocks_cleanup :: proc() {
+    if len(menu_cfg.menu_blocks) > 0 {
+        for i in 0..<len(menu_cfg.menu_blocks) {
+            menu_block_cleanup(&menu_cfg.menu_blocks[i])
+        }
+    }
+    delete(menu_cfg.menu_blocks)
+}
 
 menu_config_init_defaults :: proc() {
     menu_cfg.panel_color   = {0.08, 0.09, 0.12, 0.92}
@@ -184,6 +229,16 @@ menu_config_init_defaults :: proc() {
     menu_cfg.menu_intro_float = false
     menu_cfg.menu_intro_float_px = 6
     menu_cfg.menu_intro_float_speed = 0.25
+    menu_cfg.menu_btn_style = strings.clone("panel")
+    menu_cfg.menu_btn_style_start = strings.clone("")
+    menu_cfg.menu_btn_style_pause = strings.clone("")
+    menu_cfg.menu_title_scale = 1.0
+    menu_cfg.menu_item_scale = 1.0
+    menu_cfg.menu_title_scale_start = 0
+    menu_cfg.menu_item_scale_start = 0
+    menu_cfg.menu_title_scale_pause = 0
+    menu_cfg.menu_item_scale_pause = 0
+    menu_cfg.menu_blocks = nil
 
     menu_cfg.start_title  = strings.clone("Vnefall")
     menu_cfg.btn_start    = strings.clone("Start")
@@ -233,6 +288,94 @@ menu_config_init_defaults :: proc() {
     menu_cfg.text_speed_max = 0.2
 }
 
+menu_block_parse :: proc(val: string) -> (Menu_Block, bool) {
+    block := Menu_Block{
+        text = strings.clone(""),
+        x = 0, y = 0,
+        x_pct = -1, y_pct = -1,
+        use_pct = false,
+        anchor = strings.clone("left"),
+        valign = strings.clone("top"),
+        size = 1.0,
+        color = {1, 1, 1, 1},
+        page = strings.clone("all"),
+        shadow = false,
+        shadow_color = {0, 0, 0, 0.6},
+        shadow_px = 2,
+    }
+
+    raw := strings.trim_space(strings.trim(val, "\""))
+    if raw == "" {
+        menu_block_cleanup(&block)
+        return block, false
+    }
+
+    parts := strings.split(raw, ";")
+    defer delete(parts)
+    for part in parts {
+        item := strings.trim_space(part)
+        if item == "" do continue
+
+        eq := strings.index(item, "=")
+        if eq == -1 {
+            if block.text == "" {
+                delete(block.text)
+                block.text = strings.clone(item)
+            }
+            continue
+        }
+
+        key := strings.to_lower(strings.trim_space(item[:eq]))
+        val_str := strings.trim_space(item[eq+1:])
+        val_str = strings.trim(val_str, "\"")
+
+        switch key {
+        case "text":
+            delete(block.text)
+            block.text = strings.clone(val_str)
+        case "x":
+            if v, ok := strconv.parse_f32(val_str); ok { block.x = v }
+        case "y":
+            if v, ok := strconv.parse_f32(val_str); ok { block.y = v }
+        case "x_pct":
+            if v, ok := strconv.parse_f32(val_str); ok {
+                block.x_pct = v
+                block.use_pct = true
+            }
+        case "y_pct":
+            if v, ok := strconv.parse_f32(val_str); ok {
+                block.y_pct = v
+                block.use_pct = true
+            }
+        case "anchor":
+            delete(block.anchor)
+            block.anchor = strings.clone(strings.to_lower(val_str))
+        case "valign":
+            delete(block.valign)
+            block.valign = strings.clone(strings.to_lower(val_str))
+        case "size":
+            if v, ok := strconv.parse_f32(val_str); ok { block.size = v }
+        case "color":
+            block.color = parse_hex_color(val_str)
+        case "page":
+            delete(block.page)
+            block.page = strings.clone(strings.to_lower(val_str))
+        case "shadow":
+            block.shadow = parse_bool(val_str)
+        case "shadow_color":
+            block.shadow_color = parse_hex_color(val_str)
+        case "shadow_px":
+            if v, ok := strconv.parse_f32(val_str); ok { block.shadow_px = v }
+        }
+    }
+
+    if block.text == "" {
+        menu_block_cleanup(&block)
+        return block, false
+    }
+    return block, true
+}
+
 menu_config_apply :: proc(path: string, warn_missing: bool) -> bool {
     data, ok := os.read_entire_file(path)
     if !ok {
@@ -251,14 +394,11 @@ menu_config_apply :: proc(path: string, warn_missing: bool) -> bool {
         trimmed := strings.trim_space(line)
         if len(trimmed) == 0 || strings.has_prefix(trimmed, "#") do continue
 
-        parts := strings.split(trimmed, "=")
-        if len(parts) != 2 {
-            delete(parts)
-            continue
-        }
+        eq := strings.index(trimmed, "=")
+        if eq == -1 do continue
 
-        key := strings.trim_space(parts[0])
-        val := strings.trim_space(parts[1])
+        key := strings.trim_space(trimmed[:eq])
+        val := strings.trim_space(trimmed[eq+1:])
         if idx := strings.index(val, "#"); idx != -1 {
             val = strings.trim_space(val[:idx])
         }
@@ -400,6 +540,11 @@ menu_config_apply :: proc(path: string, warn_missing: bool) -> bool {
         case "menu_bg_settings_alpha":
             v, _ := strconv.parse_f32(val)
             menu_cfg.menu_bg_settings_alpha = v
+        case "menu_block":
+            block, ok := menu_block_parse(val)
+            if ok {
+                append(&menu_cfg.menu_blocks, block)
+            }
         case "menu_panel_color_start":
             menu_cfg.menu_panel_color_start = parse_hex_color(val)
             menu_cfg.menu_panel_color_start_set = true
@@ -409,6 +554,33 @@ menu_config_apply :: proc(path: string, warn_missing: bool) -> bool {
         case "menu_panel_color_settings":
             menu_cfg.menu_panel_color_settings = parse_hex_color(val)
             menu_cfg.menu_panel_color_settings_set = true
+        case "menu_btn_style":
+            delete(menu_cfg.menu_btn_style)
+            menu_cfg.menu_btn_style = strings.clone(strings.trim(val, "\""))
+        case "menu_btn_style_start":
+            delete(menu_cfg.menu_btn_style_start)
+            menu_cfg.menu_btn_style_start = strings.clone(strings.trim(val, "\""))
+        case "menu_btn_style_pause":
+            delete(menu_cfg.menu_btn_style_pause)
+            menu_cfg.menu_btn_style_pause = strings.clone(strings.trim(val, "\""))
+        case "menu_title_scale":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.menu_title_scale = v
+        case "menu_item_scale":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.menu_item_scale = v
+        case "menu_title_scale_start":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.menu_title_scale_start = v
+        case "menu_item_scale_start":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.menu_item_scale_start = v
+        case "menu_title_scale_pause":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.menu_title_scale_pause = v
+        case "menu_item_scale_pause":
+            v, _ := strconv.parse_f32(val)
+            menu_cfg.menu_item_scale_pause = v
         case "menu_intro_image":
             delete(menu_cfg.menu_intro_image)
             menu_cfg.menu_intro_image = strings.clone(strings.trim(val, "\""))
@@ -558,7 +730,6 @@ menu_config_apply :: proc(path: string, warn_missing: bool) -> bool {
             menu_cfg.text_speed_max = v
         }
 
-        delete(parts)
     }
 
     fmt.printf("[vnefall] Menu configuration loaded from %s\n", path)
@@ -608,6 +779,9 @@ menu_config_cleanup :: proc() {
     delete(menu_cfg.settings_anchor)
     delete(menu_cfg.menu_bg_image)
     delete(menu_cfg.menu_intro_image)
+    delete(menu_cfg.menu_btn_style)
+    delete(menu_cfg.menu_btn_style_start)
+    delete(menu_cfg.menu_btn_style_pause)
     delete(menu_cfg.start_title)
     delete(menu_cfg.btn_start)
     delete(menu_cfg.btn_load)
@@ -633,4 +807,5 @@ menu_config_cleanup :: proc() {
     delete(menu_cfg.section_reading)
     delete(menu_cfg.section_display)
     delete(menu_cfg.save_anchor)
+    menu_blocks_cleanup()
 }

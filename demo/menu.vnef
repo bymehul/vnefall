@@ -1,32 +1,47 @@
 # Menu base styling + shared assets
 
 # Panel color is RGBA (alpha is the last byte)
-menu_panel_color   = 0x151822F0
+menu_panel_color   = 0x10131ECC
 
 # Backgrounds (full path or explicit project-relative path)
 menu_bg_image = "demo/assets/images/witches/Library 1.png"
 menu_bg_start_image    = "demo/assets/images/witches/Library 1.png"
 menu_bg_pause_image    = "demo/assets/images/witches/House 6.png"
 menu_bg_settings_image = "demo/assets/images/witches/Workshop 1.png"
+menu_bg_alpha          = 1.0
+menu_bg_start_alpha    = 1.0
+menu_bg_pause_alpha    = 0.9
+menu_bg_settings_alpha = 0.9
 
 
 # Subtle background float animation (optional)
 menu_bg_float = true
-menu_bg_float_px = 8
-menu_bg_float_speed = 0.2
+menu_bg_float_px = 10
+menu_bg_float_speed = 0.18
 
 
 # Opening image (optional)
 menu_intro_image = "demo/assets/images/witches/Doorway.png"
 menu_intro_ms = 1200
 menu_intro_skip = true
-menu_intro_float = false
-menu_intro_float_px = 6
-menu_intro_float_speed = 0.25
+menu_intro_float = true
+menu_intro_float_px = 10
+menu_intro_float_speed = 0.2
+
+# Decorative text blocks (optional)
+# Format: menu_block = "text=...; x=..; y=..; anchor=left|center|right; size=..; color=0xRRGGBBAA; page=start|pause|settings|save|load|all"
+menu_block = "text=Vnefall; x=120; y=70; anchor=left; size=2.2; color=0xF2F4FFFF; page=start; shadow=true; shadow_px=2"
+menu_block = "text=Test; x=120; y=128; anchor=left; size=0.9; color=0xC6D0E6FF; page=start"
+menu_block = "text=v1.5.0; x=16; y=14; anchor=left; size=0.75; color=0xA8B0C2FF; page=all"
+menu_block = "text=VNEFALL; x_pct=0.94; y=18; anchor=right; size=0.8; color=0xE6E6E6FF; page=start"
+menu_block = "text=© 2025 Vnefall; x_pct=0.5; y_pct=0.965; anchor=center; size=0.75; color=0xA8B0C2FF; page=start"
 
 # Shared layout defaults
-menu_padding      = 12
-menu_gap          = 8
-menu_button_h     = 40
+menu_padding      = 16
+menu_gap          = 12
+menu_button_h     = 36
 menu_max_button_w = 0
 menu_align_h      = "center"
+menu_btn_style    = "panel" # panel | text
+menu_title_scale  = 1.05
+menu_item_scale   = 1.0
